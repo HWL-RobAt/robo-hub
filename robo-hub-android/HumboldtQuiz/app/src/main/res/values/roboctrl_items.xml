@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="roboctrl_items">
+        <item>Gyro</item>
+        <item>Touch</item>
+        <item>Line</item>
+        <item>Distance</item>
+    </string-array>
+</resources>

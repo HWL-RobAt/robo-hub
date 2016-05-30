@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context="de.hu_berlin.informatik.humboldtquiz.RoboCtrlActivity">
+
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerHorizontal="true"
+        android:id="@+id/linearLayout"
+        android:weightSum="1">
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:weightSum="1">
+
+            <Spinner
+                android:layout_width="93dp"
+                android:layout_height="38dp"
+                android:id="@+id/spinner_level"
+                android:spinnerMode="dropdown"
+                android:layout_weight="0.39" />
+
+            <Spinner
+                android:layout_width="86dp"
+                android:layout_height="33dp"
+                android:id="@+id/spinner_roboctrl"
+                android:spinnerMode="dropdown"
+                android:layout_weight="0.55" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="38dp"
+                android:text="Connect"
+                android:id="@+id/button_connect"
+                android:enabled="true"
+                android:onClick="onClickConnect" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:weightSum="1">
+
+
+            <Chronometer
+                android:layout_width="244dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/chronometer"
+                android:layout_gravity="center_vertical"
+                android:text="Zeit"
+                android:layout_weight="0.75" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="38dp"
+                android:text="Start"
+                android:id="@+id/button_start"
+                android:enabled="true"
+                android:onClick="onClickStart" />
+
+        </LinearLayout>
+
+        <ImageView
+            android:layout_width="300dp"
+            android:layout_height="300dp"
+            android:id="@+id/imageView_roboctrl_touch"
+            android:layout_centerVertical="true"
+            android:layout_gravity="center"
+            android:src="#31b7fa" />
+
+        <Button
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Fragen"
+            android:id="@+id/question_button"
+            android:layout_gravity="center_horizontal"
+            android:onClick="onClickQuestion" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="Debug"
+            android:id="@+id/textView_debug" />
+
+    </LinearLayout>
+
+</RelativeLayout>
