@@ -1,3 +1,4 @@
+import java.util.HashSet;
 import java.util.Random;
 
 /**
@@ -22,6 +23,7 @@ public class LineDetector extends EV3Sensor {
   int lastDetectionArray[] = null;
 
   int lineColor;
+  HashSet<Integer> lineColorSet = null;
 
   public LineDetector(int lineColor) {
     Random rand = new Random();
@@ -32,6 +34,13 @@ public class LineDetector extends EV3Sensor {
     lastSample = new int[2];
     lastDetectionArray = new int[1];
   }
+
+  public LineDetector(int lineColors[]) {
+    this(lineColors[0]);
+
+    lineColorSet = new HashSet<Integer>();
+  }
+
 
   public void updateSensorInput(int senorData[]) {
     lastSample[RIGHT] = senorData[RIGHT];

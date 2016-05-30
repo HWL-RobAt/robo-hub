@@ -36,7 +36,7 @@ class AppToRoboCommunicationTask extends AsyncTask<AppToRoboCommunicationControl
                         }
                     }
 
-                    Thread.sleep(10,0);
+                    Thread.sleep(20,0);
                 }
             }
 

@@ -32,4 +32,11 @@ public class ColorSensorMulti extends EV3Sensor {
       iArray[i] = cSensorList[i].getNextSample();
     }
   }
+
+  public void stop() {
+    for( int i = 0; i < cSensorList.length; i++) {
+      cSensorList[i].colorSensor.setFloodlight(false);
+      cSensorList[i].colorSensor.close();
+    }
+  }
 }

@@ -18,32 +18,30 @@ public class SocketConnector {
 
   Socket s = null;
   ServerSocket serv = null;
-  String nameOrIP = null;
-  int port = -1;
+  ConnectionInfo ci = null;
   DataOutputStream out = null;
   DataInputStream in = null;
 
   boolean hasPrefetched = false;
   int prefetchedInt = 0;
 
-  public SocketConnector(ConnectionInfo brickInfo) {
-    this.nameOrIP = brickInfo.nameOrIP;
-    this.port = brickInfo.port;
+  public SocketConnector(ConnectionInfo connInfo) {
+    this.ci = connInfo;
   }
 
   public void init() {
-    if ( nameOrIP.equals("0.0.0.0") ) {
+    if ( ci.nameOrIP.equals("0.0.0.0") ) {
       try {
-        serv = new ServerSocket(this.port);
+        serv = new ServerSocket(this.ci.port);
       } catch (IOException ioe) {
         System.out.println("Socket error.");
         serv = null;
       }
     } else {
       try {
-        s = new Socket(this.nameOrIP, this.port);
+        s = new Socket(this.ci.nameOrIP, this.ci.port);
       } catch (UnknownHostException e) {
-        System.out.println("Host " + this.nameOrIP + " is not known.");
+        System.out.println("Host " + this.ci.nameOrIP + " is not known.");
         s = null;
       } catch (IOException ioe) {
         System.out.println("Socket error.");

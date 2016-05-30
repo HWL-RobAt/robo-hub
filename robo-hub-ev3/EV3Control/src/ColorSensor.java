@@ -21,6 +21,8 @@ public class ColorSensor extends EV3Sensor{
   SampleProvider colorSensorSP = null;
   float colorSensorSample[] = null;
 
+
+
   public ColorSensor(String port) {
     EV3 ev3 = (EV3) BrickFinder.getLocal();
     init(ev3, port);
@@ -40,7 +42,8 @@ public class ColorSensor extends EV3Sensor{
     }
 
     colorSensor.setFloodlight(true);
-    colorSensorMode = colorSensor.getRGBMode();
+    //colorSensorMode = colorSensor.getRGBMode();
+    colorSensorMode = colorSensor.getColorIDMode();
     colorSensorSP = (SampleProvider)colorSensorMode;
 
     colorSensorSample = new float[colorSensorSP.sampleSize()];
@@ -51,15 +54,15 @@ public class ColorSensor extends EV3Sensor{
   }
 
   public int getNextSample(float[] nextSample) {
-    int color = colorSensor.getColorID ();
-
     if ( nextSample != null ) {
       colorSensorSP.fetchSample(colorSensorSample, 0);
-      nextSample[0] = colorSensorSample[0];
-      nextSample[1] = colorSensorSample[1];
-      nextSample[2] = colorSensorSample[2];
+
+      for ( int i = 0; i < colorSensorSP.sampleSize(); i++)
+         nextSample[i] = colorSensorSample[i];
     }
 
-    return color;
+    //TODO: get color using rbg
+
+    return (colorSensorSP.sampleSize() > 1)?0:colorSensor.getColorID();
   }
 }

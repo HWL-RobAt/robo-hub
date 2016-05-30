@@ -14,9 +14,10 @@
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_centerHorizontal="true"
         android:id="@+id/linearLayout"
-        android:weightSum="1">
+        android:weightSum="1"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true">
 
         <LinearLayout
             android:orientation="horizontal"
@@ -24,19 +25,14 @@
             android:layout_height="wrap_content"
             android:weightSum="1">
 
-            <Spinner
-                android:layout_width="93dp"
-                android:layout_height="38dp"
-                android:id="@+id/spinner_level"
-                android:spinnerMode="dropdown"
-                android:layout_weight="0.39" />
-
-            <Spinner
-                android:layout_width="86dp"
-                android:layout_height="33dp"
-                android:id="@+id/spinner_roboctrl"
-                android:spinnerMode="dropdown"
-                android:layout_weight="0.55" />
+            <EditText
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/editText_addr"
+                android:layout_weight="0.9"
+                android:enabled="true"
+                android:editable="true"
+                android:text="127.0.0.1" />
 
             <Button
                 android:layout_width="wrap_content"
@@ -44,7 +40,8 @@
                 android:text="Connect"
                 android:id="@+id/button_connect"
                 android:enabled="true"
-                android:onClick="onClickConnect" />
+                android:onClick="onClickConnect"
+                android:layout_weight="0.10" />
         </LinearLayout>
 
         <LinearLayout
@@ -54,13 +51,29 @@
             android:weightSum="1">
 
 
+            <Spinner
+                android:layout_width="93dp"
+                android:layout_height="38dp"
+                android:id="@+id/spinner_level"
+                android:spinnerMode="dropdown"
+                android:layout_weight="0.25" />
+
+            <Spinner
+                android:layout_width="86dp"
+                android:layout_height="33dp"
+                android:id="@+id/spinner_roboctrl"
+                android:spinnerMode="dropdown"
+                android:layout_weight="0.25" />
+
             <Chronometer
-                android:layout_width="244dp"
+                android:layout_width="48dp"
                 android:layout_height="wrap_content"
                 android:id="@+id/chronometer"
-                android:layout_gravity="center_vertical"
-                android:text="Zeit"
-                android:layout_weight="0.75" />
+                android:layout_gravity="bottom|center"
+                android:layout_weight="0.40"
+                android:textSize="24dp"
+                android:textAlignment="center"
+                android:gravity="center_horizontal" />
 
             <Button
                 android:layout_width="wrap_content"
@@ -68,17 +81,20 @@
                 android:text="Start"
                 android:id="@+id/button_start"
                 android:enabled="true"
-                android:onClick="onClickStart" />
+                android:onClick="onClickStart"
+                android:layout_weight="0.10" />
 
         </LinearLayout>
 
         <ImageView
-            android:layout_width="300dp"
-            android:layout_height="300dp"
+            android:layout_width="match_parent"
+            android:layout_height="800dp"
             android:id="@+id/imageView_roboctrl_touch"
             android:layout_centerVertical="true"
-            android:layout_gravity="center"
-            android:src="#31b7fa" />
+            android:src="#31b7fa"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp"
+            android:layout_gravity="center_horizontal" />
 
         <Button
             style="?android:attr/buttonStyleSmall"
@@ -90,7 +106,7 @@
             android:onClick="onClickQuestion" />
 
         <TextView
-            android:layout_width="match_parent"
+            android:layout_width="587dp"
             android:layout_height="match_parent"
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:text="Debug"

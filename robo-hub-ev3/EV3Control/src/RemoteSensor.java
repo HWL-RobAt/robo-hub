@@ -29,11 +29,11 @@ public class RemoteSensor extends EV3Sensor {
       int absSpeed = (int)Math.round(Math.sqrt(x*x + y*y));
 
       if ( y < 0 ) {
-        speed[0] = 8 * (absSpeed - x);
-        speed[1] = 8 * (absSpeed);
+        speed[0] = 4 * (absSpeed - x);
+        speed[1] = 4 * (absSpeed);
       } else {
-        speed[0] = -8 * (absSpeed - x);
-        speed[1] = -8 * (absSpeed);
+        speed[0] = -4 * (absSpeed - x);
+        speed[1] = -4 * (absSpeed);
       }
 
     } else {

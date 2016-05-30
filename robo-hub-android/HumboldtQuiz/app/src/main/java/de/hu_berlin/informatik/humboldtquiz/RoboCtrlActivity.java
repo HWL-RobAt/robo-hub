@@ -15,6 +15,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Chronometer;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -65,8 +66,8 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
         //ci = new ConnectionInfo("192.168.10.1", 2000); //SIM -> Laptop
 
         //wifi HOME
-        ci = new ConnectionInfo("192.168.0.236", 2000); //Dev -> Laptop
-        //ci = new ConnectionInfo("192.168.0.174", 2000); //Dev -> Robo
+        //ci = new ConnectionInfo("192.168.0.236", 2000); //Dev -> Laptop
+        ci = new ConnectionInfo("192.168.0.174", 2000); //Dev -> Robo
 
         //Bluetooth
         //ci = new ConnectionInfo("10.0.1.1", 2000);
@@ -91,6 +92,13 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
 
     public void onClickConnect(View view) {
         if ( connectionMode == CONNECTION_MODE_DISCONNECTED ) {
+            EditText etIP = (EditText)findViewById(R.id.editText_addr);
+            String ipAddr = etIP.getText().toString();
+
+            if ( !ipAddr.equals("127.0.0.1")) {
+                ci.nameOrIP = ipAddr;
+            }
+
             AsyncTask commTask = new AppToRoboCommunicationTask().execute(app2roboComCtrl);
 
             System.out.println("Connect");

@@ -28,13 +28,13 @@ public class HuQuizRobo {
 
   public static void main(String[] args) {
 
-    boolean running = true;
+    boolean running = false;
 
-    int frequency = 100;
-    //int markerColor[] = {Color.YELLOW, Color.GREEN};
-    //int lineColor = Color.BLUE;
-    int markerColor[] = {Color.GREEN, Color.BLACK};
-    int lineColor = Color.RED;
+    int frequency = 50;
+    int markerColor[] = {Color.YELLOW, Color.GREEN};
+    int lineColor = Color.BLUE;
+    //int markerColor[] = {Color.GREEN, Color.BLACK};
+    //int lineColor = Color.RED;
 
     int roboMoveMode = ROBO_MODE_CTRL_LINE;
 
@@ -44,7 +44,7 @@ public class HuQuizRobo {
 
     SensorDB sensorDB = new SensorDB();
 
-    String colorSensorPorts[] = {"S2", "S4"};
+    String colorSensorPorts[] = {"S1", "S2"};
     ColorSensorMulti colorSensors = new ColorSensorMulti(colorSensorPorts);
 
     LineDetector lineDetector = new LineDetector(lineColor);
@@ -100,8 +100,8 @@ public class HuQuizRobo {
           moveCtrl = new MoveControlRemote();
         }
 
-        moveCtrl.setDefaultSpeed(100);
-        moveCtrl.setMaxSpeed(200);
+        moveCtrl.setDefaultSpeed(150);
+        moveCtrl.setMaxSpeed(250);
 
         if (remoteSensor != null) {
           remoteSensor.setDataInputStream(sock);
@@ -148,8 +148,8 @@ public class HuQuizRobo {
           switch (command) {
             case AppCommand.COMMAND_ANSWER: {
               moveCtrl.reset();
-              if (params[0] == 1) moveCtrl.setDefaultSpeed(200);
-              if (params[0] == 2) moveCtrl.setDefaultSpeed(300);
+              if (params[0] == 1) moveCtrl.setDefaultSpeed(250);
+              if (params[0] == 2) moveCtrl.setDefaultSpeed(150);
               break;
             }
             case AppCommand.COMMAND_STOP: {
@@ -157,7 +157,8 @@ public class HuQuizRobo {
               break;
             }
           }
-          //keys.waitForAnyPress();
+
+          if (running == false) break;
 
           lcd.clear(6);
           moveCtrl.reset();
@@ -168,6 +169,21 @@ public class HuQuizRobo {
             lcd.clear(6);
           }
         }
+
+        if (sock.rxAvailable()) {
+          rxTxInt = sock.receiveInt();
+          command = AppCommand.decode(rxTxInt, params);
+
+          switch (command) {
+            case AppCommand.COMMAND_STOP:
+              running = false;
+              break;
+            default:
+              sock.returnReceivedInt(rxTxInt);
+          }
+        }
+
+        if (running == false) break;
 
         int moveCtrlInput[] = null;
 
@@ -182,7 +198,7 @@ public class HuQuizRobo {
 
         roboMotorCtl.setSpeed(speed[0], speed[1]);
 
-        lcd.clear(2);
+       /* lcd.clear(2);
         lcd.clear(3);
         lcd.clear(4);
         lcd.drawString("Speed: " + speed[0] + " / " + speed[1], 1, 2);
@@ -192,7 +208,7 @@ public class HuQuizRobo {
           lcd.drawString("Line: " + moveCtrlInput[0] + "", 1, 3);
         }
         lcd.drawString("Mode: " + mode + "", 1, 4);
-
+        */
         Delay.msDelay((long) (1000 / frequency));
 
         running = running && Button.ESCAPE.isUp();
@@ -201,6 +217,9 @@ public class HuQuizRobo {
       roboMotorCtl.stop();
 
     } while (!sock.isClosed());
+
+    colorSensors.stop();
+
   }
 
 }
