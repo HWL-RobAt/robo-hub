@@ -3,11 +3,10 @@ import lejos.hardware.Button;
 import lejos.hardware.Keys;
 import lejos.hardware.ev3.EV3;
 import lejos.hardware.lcd.TextLCD;
-import lejos.hardware.motor.EV3LargeRegulatedMotor;
-import lejos.hardware.port.MotorPort;
 import lejos.robotics.Color;
-import lejos.robotics.RegulatedMotor;
 import lejos.utility.Delay;
+
+import static lejos.hardware.ev3.LocalEV3.ev3;
 
 /**
  * Created by IntelliJ IDEA.
@@ -21,111 +20,187 @@ public class HuQuizRobo {
   public static final int ROBO_MODE_LINE = 0;
   public static final int ROBO_MODE_MARKER = 1;
 
-  static final int[][] speedLookup = {{20, 40, 100, 160, 180}, {30, 50, 150, 250, 270}, {30, 50, 200, 350, 370}};
+  public static final int ROBO_MODE_CTRL_GYRO = 0;
+  public static final int ROBO_MODE_CTRL_TOUCH = 1;
+  public static final int ROBO_MODE_CTRL_LINE = 2;
+  public static final int ROBO_MODE_CTRL_DIST = 3;
+
 
   public static void main(String[] args) {
 
-    int frequency = 25;
-    int markerColor[] = {Color.YELLOW, Color.GREEN};
+    boolean running = true;
+
+    int frequency = 100;
+    //int markerColor[] = {Color.YELLOW, Color.GREEN};
+    //int lineColor = Color.BLUE;
+    int markerColor[] = {Color.GREEN, Color.BLACK};
+    int lineColor = Color.RED;
+
+    int roboMoveMode = ROBO_MODE_CTRL_LINE;
 
     EV3 ev3 = (EV3) BrickFinder.getLocal();
     TextLCD lcd = ev3.getTextLCD();
-
-    LineDetectorWithMarker lineDetect = new LineDetectorWithMarker(ev3, Color.BLUE, "S4", "S2");
-    lineDetect.setMarker(markerColor);
-
-    BraitenbergLine bbLine = new BraitenbergLine();
     Keys keys = ev3.getKeys();
 
-    RegulatedMotor motorR = new EV3LargeRegulatedMotor(MotorPort.A);
-    RegulatedMotor motorL = new EV3LargeRegulatedMotor(MotorPort.B);
+    SensorDB sensorDB = new SensorDB();
 
-    int speedIndex = 0;
-    int curveIndexR = 2;
-    int curveIndexL = 2;
+    String colorSensorPorts[] = {"S2", "S4"};
+    ColorSensorMulti colorSensors = new ColorSensorMulti(colorSensorPorts);
 
-    int rightSpeed = speedLookup[speedIndex][curveIndexR];
-    int leftSpeed =  speedLookup[speedIndex][curveIndexL];
+    LineDetector lineDetector = new LineDetector(lineColor);
+
+    //MarkerDetector markerDetect = new MarkerDetector(markerColor);
+    MarkerDetector markerDetect = new MarkerDetectorWithMemory(markerColor);
+
+    RemoteSensor remoteSensor = new RemoteSensor(null);
+
+    MoveControl moveCtrl = null;
+
+    DualMotorControl roboMotorCtl = new DualMotorControl("MotorPort.A", "MotorPort.B");
 
     int mode = ROBO_MODE_LINE;
 
-    while ( Button.ESCAPE.isUp()) {
-      lineDetect.updateSensorData();
+    /*
+     * Communication
+     */
+    //ConnectionInfo ci = new ConnectionInfo("server.properties");
+    ConnectionInfo ci = new ConnectionInfo("0.0.0.0", 2000);
+    SocketConnector sock = new SocketConnector(ci);
+    sock.init();
 
-      if ((mode == ROBO_MODE_LINE) && lineDetect.hasMarkerDetected()) {
-        mode = ROBO_MODE_MARKER;
-        int markerCol = lineDetect.getDetectedMarker();
-        lcd.clear(6);
-        lcd.drawString("Marker: " + markerCol + "", 1, 6);
+    lcd.drawString("Wait for Client", 1, 2);
 
-        motorR.setSpeed(10);
-        motorL.setSpeed(10);
-        motorL.backward();
-        motorR.backward();
+    sock.waitForClient();
 
-        Delay.msDelay((long) (1000/frequency));
+    lcd.clear(2);
 
-        motorR.stop();
-        motorL.stop();
+    int rxTxInt = 0;
+    int params[] = {0, 0, 0};
+    int command = -1;
 
-        keys.waitForAnyPress();
+    do {
 
-        lcd.clear(6);
-        speedIndex = 0;
-        curveIndexL = 2;
-        curveIndexR = 2;
+      lcd.drawString("Ready for next Quiz", 1, 2);
+
+      do {
+        rxTxInt = sock.receiveInt();
+        command = AppCommand.decode(rxTxInt, params);
+      } while ((command != AppCommand.COMMAND_START) && (command != AppCommand.COMMAND_DISCONNECT));
+
+      lcd.clear(2);
+
+      if (command == AppCommand.COMMAND_START) {
+        roboMoveMode = params[0];
+
+        lcd.drawString("Mode: " + roboMoveMode, 1, 1);
+
+        if (roboMoveMode == ROBO_MODE_CTRL_LINE) {
+          moveCtrl = new MoveControlBraitenbergLine();
+        } else {
+          moveCtrl = new MoveControlRemote();
+        }
+
+        moveCtrl.setDefaultSpeed(100);
+        moveCtrl.setMaxSpeed(200);
+
+        if (remoteSensor != null) {
+          remoteSensor.setDataInputStream(sock);
+        }
+
+        running = true;
       } else {
-        if (!lineDetect.hasMarkerDetected()) {
-          mode = ROBO_MODE_LINE;
-          lcd.clear(6);
+        if (command == AppCommand.COMMAND_DISCONNECT) {
+          running = false;
+          sock.close();
+        } else {
+          running = false;
         }
       }
 
-      int lineDetectValue = lineDetect.getSensorData();
-      int action = bbLine.nextAction(lineDetectValue);
+      while (running) {
+        colorSensors.updateSensorDB(sensorDB);
+        markerDetect.updateSensorDB(sensorDB);
 
-      /*
-       * adjust speed
-       */
+        lineDetector.updateSensorDB(sensorDB);
+        remoteSensor.updateSensorDB(sensorDB);
 
-      if (action == BraitenbergLine.BRAITENBERG_MOVE_NONE) {
-        speedIndex = Math.min(speedIndex+1, speedLookup.length);
-      } else {
-        speedIndex = Math.max(speedIndex-1, 0);
+        if ((mode == ROBO_MODE_LINE) && markerDetect.hasMarkerDetected()) {
+          mode = ROBO_MODE_MARKER;
+          int markerCol = markerDetect.getDetectedMarker();
+
+          lcd.clear(6);
+          lcd.drawString("Marker: " + markerCol + "", 1, 6);
+
+          roboMotorCtl.backward(10);
+
+          Delay.msDelay((long) (1000 / frequency));
+
+          roboMotorCtl.stop();
+
+          rxTxInt = AppCommand.encode(AppCommand.COMMAND_QUESTION);
+          sock.sendInt(rxTxInt);
+
+          do {
+            rxTxInt = sock.receiveInt();
+            command = AppCommand.decode(rxTxInt, params);
+          } while ((command != AppCommand.COMMAND_ANSWER) && (command != AppCommand.COMMAND_STOP));
+
+          switch (command) {
+            case AppCommand.COMMAND_ANSWER: {
+              moveCtrl.reset();
+              if (params[0] == 1) moveCtrl.setDefaultSpeed(200);
+              if (params[0] == 2) moveCtrl.setDefaultSpeed(300);
+              break;
+            }
+            case AppCommand.COMMAND_STOP: {
+              running = false;
+              break;
+            }
+          }
+          //keys.waitForAnyPress();
+
+          lcd.clear(6);
+          moveCtrl.reset();
+
+        } else {
+          if (!markerDetect.hasMarkerDetected()) {
+            mode = ROBO_MODE_LINE;
+            lcd.clear(6);
+          }
+        }
+
+        int moveCtrlInput[] = null;
+
+        if (roboMoveMode == ROBO_MODE_CTRL_LINE) {
+          moveCtrlInput = lineDetector.getSensorOutputs();
+        } else {
+          moveCtrlInput = remoteSensor.getSensorOutputs();
+        }
+
+        moveCtrl.updateSensorInputs(moveCtrlInput);
+        int speed[] = moveCtrl.getNextSpeed();
+
+        roboMotorCtl.setSpeed(speed[0], speed[1]);
+
+        lcd.clear(2);
+        lcd.clear(3);
+        lcd.clear(4);
+        lcd.drawString("Speed: " + speed[0] + " / " + speed[1], 1, 2);
+        if (moveCtrlInput.length > 1) {
+          lcd.drawString("Line: " + moveCtrlInput[0] + " " + moveCtrlInput[1], 1, 3);
+        } else {
+          lcd.drawString("Line: " + moveCtrlInput[0] + "", 1, 3);
+        }
+        lcd.drawString("Mode: " + mode + "", 1, 4);
+
+        Delay.msDelay((long) (1000 / frequency));
+
+        running = running && Button.ESCAPE.isUp();
       }
 
-      if (action == BraitenbergLine.BRAITENBERG_MOVE_RIGHT) {
-        curveIndexR = Math.max( curveIndexR-1, 0);
-        curveIndexL = Math.min( curveIndexL+1, speedLookup[0].length );
+      roboMotorCtl.stop();
 
-      }
-
-      if (action == BraitenbergLine.BRAITENBERG_MOVE_LEFT) {
-        curveIndexL = Math.max( curveIndexL-1, 0);
-        curveIndexR = Math.min( curveIndexR+1, speedLookup[0].length );
-      }
-
-      rightSpeed = speedLookup[speedIndex][curveIndexR];
-      leftSpeed = speedLookup[speedIndex][curveIndexL];
-      motorR.setSpeed(rightSpeed);
-      motorL.setSpeed(leftSpeed);
-
-      motorR.forward();
-      motorL.forward();
-
-      lcd.clear(3);
-      lcd.clear(4);
-      lcd.clear(5);
-      lcd.drawString("Speed: " + leftSpeed + " / " + rightSpeed, 1, 3);
-      lcd.drawString("Line: " + lineDetectValue + "", 1, 4);
-      lcd.drawString("Action: " + action + "", 1, 5);
-
-
-
-      Delay.msDelay((long) (1000/frequency));
-    }
-
-    motorR.stop();
-    motorL.stop();
+    } while (!sock.isClosed());
   }
+
 }

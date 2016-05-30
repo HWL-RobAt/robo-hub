@@ -22,22 +22,19 @@ public class QuestionsCatalog {
     answers4Question = new HashMap<String, String[]>();
   }
 
+  public void loadCatalog(InputStream is) {
+    BufferedReader bufR = new BufferedReader(new InputStreamReader(is));
+
+    loadCatalog(bufR);
+  }
+
+
   public void loadCatalog(String filename) {
     try {
       FileReader fr = new FileReader(filename);
       BufferedReader bufR = new BufferedReader(fr);
 
-      String line = null;
-      while (null != (line = bufR.readLine())) {
-        System.out.println("Read:" + line);
-        String[] data = line.split(";");
-        String question = data[0];
-        String answers[] = new String[data.length-1];
-        for ( int i = 1; i < data.length; i++)
-          answers[i-1] = data[i];
-        questions.add(new Question(question,answers,0));
-        answers4Question.put(question, answers);
-      }
+      loadCatalog(bufR);
 
       fr.close();
     } catch (FileNotFoundException fnfE) {
@@ -47,6 +44,29 @@ public class QuestionsCatalog {
       throw new RuntimeException(e.getMessage());
     }
   }
+
+  public void loadCatalog(BufferedReader bufR) {
+    try {
+      String line = null;
+      while (null != (line = bufR.readLine())) {
+        System.out.println("Read:" + line);
+        String[] data = line.split(";");
+        int level = new Integer(data[0]);
+        String question = data[1];
+        String answers[] = new String[data.length-2];
+        for ( int i = 2; i < data.length; i++)
+          answers[i-2] = data[i];
+        Question q = new Question(question,answers,0);
+        q.setLevel(level);
+        questions.add(q);
+        answers4Question.put(question, answers);
+      }
+
+    } catch (IOException e) {
+      throw new RuntimeException(e.getMessage());
+    }
+  }
+
 
   public Question getNextQuestion() {
     return questions.get(rand.nextInt(questions.size()));

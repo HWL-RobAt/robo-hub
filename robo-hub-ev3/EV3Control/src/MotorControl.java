@@ -10,19 +10,38 @@ import lejos.robotics.RegulatedMotor;
  * Time: 22:37
  * To change this template use File | Settings | File Templates.
  */
-public class MotorControl {
+public class MotorControl implements EV3Controler{
   Port motorPort;
-  RegulatedMotor motor = null;
+  public RegulatedMotor motor = null;
   int iMaxSpeed = 0;
   double maxSpeed = 0.0;
 
   int lastSetSpeed = 0;
 
   public MotorControl(Port motorPort) {
+    init(motorPort);
+  }
+
+  public MotorControl(String motorPort) {
+    if (motorPort.equals("MotorPort.A")) {
+      init(MotorPort.A);
+    }
+    if (motorPort.equals("MotorPort.B")) {
+      init(MotorPort.B);
+    }
+    if (motorPort.equals("MotorPort.C")) {
+      init(MotorPort.C);
+    }
+    if (motorPort.equals("MotorPort.D")) {
+      init(MotorPort.D);
+    }
+  }
+
+  private void init(Port motorPort) {
     this.motorPort = motorPort;
     this.motor = new EV3LargeRegulatedMotor(motorPort);
     maxSpeed = motor.getMaxSpeed();
-    iMaxSpeed = (int)Math.round(maxSpeed);
+    iMaxSpeed = (int) Math.round(maxSpeed);
   }
 
   public void setSpeed(int speed) {
@@ -30,6 +49,10 @@ public class MotorControl {
     motor.setSpeed(Math.abs(speed));
     if ( speed >= 0) motor.forward();
     else motor.backward();
+  }
+
+  public void stop() {
+    motor.stop();
   }
 
   public void close() {

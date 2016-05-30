@@ -28,6 +28,10 @@ public class Question {
     this.rightAnswer = rightAnswers;
   }
 
+  public void setLevel(int level) {
+    this.level = level;
+  }
+
   public boolean isCorrectAnswer(int number) {
     return (rightAnswer == number);
   }

@@ -1,3 +1,4 @@
+import lejos.hardware.BrickFinder;
 import lejos.hardware.ev3.EV3;
 import lejos.hardware.port.Port;
 import lejos.hardware.sensor.EV3ColorSensor;
@@ -12,7 +13,7 @@ import lejos.robotics.SampleProvider;
  * Time: 08:42
  * To change this template use File | Settings | File Templates.
  */
-public class ColorSensorControl {
+public class ColorSensor extends EV3Sensor{
 
   Port colorPort = null;
   EV3ColorSensor colorSensor = null;
@@ -20,9 +21,16 @@ public class ColorSensorControl {
   SampleProvider colorSensorSP = null;
   float colorSensorSample[] = null;
 
-  float frequency = 1;
+  public ColorSensor(String port) {
+    EV3 ev3 = (EV3) BrickFinder.getLocal();
+    init(ev3, port);
+  }
 
-  public ColorSensorControl(EV3 ev3, String port) {
+  public ColorSensor(EV3 ev3, String port) {
+    init(ev3, port);
+  }
+
+  private void init(EV3 ev3, String port) {
     colorPort = ev3.getPort(port);
     try {
       colorSensor = new EV3ColorSensor(colorPort);
@@ -41,6 +49,7 @@ public class ColorSensorControl {
   public int getNextSample() {
     return getNextSample(null);
   }
+
   public int getNextSample(float[] nextSample) {
     int color = colorSensor.getColorID ();
 
