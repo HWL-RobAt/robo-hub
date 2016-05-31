@@ -103,9 +103,7 @@ public class HuQuizRobo {
         moveCtrl.setDefaultSpeed(150);
         moveCtrl.setMaxSpeed(250);
 
-        if (remoteSensor != null) {
-          remoteSensor.setDataInputStream(sock);
-        }
+        if (remoteSensor != null) remoteSensor.setDataInputStream(sock);
 
         running = true;
       } else {
