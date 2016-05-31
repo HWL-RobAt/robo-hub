@@ -9,11 +9,8 @@ public class MoveControlBraitenbergLine extends MoveControlBraitenberg {
 
   int lastSensorInput = LineDetector.LINE_DETECT_NONE;
 
-  int currentSpeed[] = null;
-
   public MoveControlBraitenbergLine() {
-    currentSpeed = new int[2];
-    currentSpeed[0] = currentSpeed[1] = 0;
+    reset();
   }
 
   public void updateSensorInputs(int input[]) {
@@ -34,21 +31,22 @@ public class MoveControlBraitenbergLine extends MoveControlBraitenberg {
     switch (lastSensorInput) {
       case LineDetector.LINE_DETECT_BOTH:
       case LineDetector.LINE_DETECT_NONE: {
-        currentSpeed[0] = currentSpeed[1] = defaultSpeed;
+        currentSpeed[0] = currentSpeed[1] = maxSpeed;
         break;
       }
       case LineDetector.LINE_DETECT_LEFT: {
-        currentSpeed[LineDetector.RIGHT] = defaultSpeed;
+        currentSpeed[LineDetector.RIGHT] = maxSpeed;
         currentSpeed[LineDetector.LEFT] = 0;
         break;
       }
       case LineDetector.LINE_DETECT_RIGHT: {
         currentSpeed[LineDetector.RIGHT] = 0;
-        currentSpeed[LineDetector.LEFT] = defaultSpeed;
+        currentSpeed[LineDetector.LEFT] = maxSpeed;
         break;
       }
     }
 
     return currentSpeed;
   }
+
 }

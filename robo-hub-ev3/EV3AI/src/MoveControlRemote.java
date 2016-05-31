@@ -3,37 +3,46 @@
  */
 public class MoveControlRemote extends MoveControl {
 
-  int speed[] = null;
+  int speedMapping = 1;
 
   public MoveControlRemote() {
-    speed = new int[2];
-    speed[0] = speed[1] = 0;
+    reset();
   }
 
   public void updateSensorInputs(int input[]) {
-    speed = input;
+
+    switch (speedMapping) {
+      case 0: {
+        int absSpeed = (int) Math.round(Math.sqrt(input[0] * input[0] + input[1] * input[1]));
+        absSpeed = Math.min(absSpeed, 100);
+
+        int fac = (input[1] < 0) ? 1 : -1;
+
+        if (input[0] > 0) {
+          currentSpeed[0] = fac * 4 * (absSpeed + input[0]);
+          currentSpeed[1] = fac * 4 * (absSpeed);
+        } else {
+          currentSpeed[0] = fac * 4 * (absSpeed);
+          currentSpeed[1] = fac * 4 * (absSpeed - input[0]);
+        }
+
+        break;
+      }
+      case 1: {
+        // Y is forward/backward - Speed
+        // X gives distribution among both motors
+
+        currentSpeed[0] = (-16 * (input[1] * Math.min(50, 50 - input[0]))) / 100;
+        currentSpeed[1] = (-16 * (input[1] * Math.min(50, 50 + input[0]))) / 100;
+
+        break;
+      }
+    }
   }
 
   public int[] getNextSpeed() {
-    return speed;
+    return currentSpeed;
   }
 
-  static public void translateSpeed(int speed[]) {
-    int x = speed[0] - 50;
-    int y = speed[1] - 50;
-
-    int absSpeed = (int)Math.round(Math.abs(Math.sqrt(x*x + y*y)));
-
-    x = absSpeed-x;
-    y = absSpeed+x;
-
-    speed[0] = x;
-    speed[1] = y;
-
-  }
-
-  public void reset() {
-    speed[0] = speed[1] = 0;
-  }
 
 }

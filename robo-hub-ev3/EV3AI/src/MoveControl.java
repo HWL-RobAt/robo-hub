@@ -4,18 +4,15 @@
 public abstract class MoveControl {
 
   public int maxSpeed = 0;
-  public int defaultSpeed = 0;
+
+  int currentSpeed[] = {0,0};
 
   public void setMaxSpeed(int speed) {
     this.maxSpeed = speed;
   }
 
-  public void setDefaultSpeed(int defaultSpeed) {
-    this.defaultSpeed = defaultSpeed;
-  }
-
   public void reset() {
-
+    currentSpeed[0] = currentSpeed[1] = 0;
   }
 
   public void updateSensorInputs(int[] sensoreData) {

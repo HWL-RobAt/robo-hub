@@ -59,6 +59,7 @@ public class MoveControlBraitenbergLineMultiSpeed extends MoveControlBraitenberg
   }
 
   public void reset() {
+    super.reset();
     speedIndex = 0;
     curveIndexL = 2;
     curveIndexR = 2;

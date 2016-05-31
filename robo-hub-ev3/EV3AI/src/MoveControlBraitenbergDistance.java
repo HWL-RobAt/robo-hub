@@ -7,7 +7,6 @@
  */
 public class MoveControlBraitenbergDistance extends MoveControlBraitenberg {
 
-
   public MoveControlBraitenbergDistance() {
   }
 

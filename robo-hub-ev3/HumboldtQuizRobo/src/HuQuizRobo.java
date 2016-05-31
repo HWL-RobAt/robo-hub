@@ -100,8 +100,7 @@ public class HuQuizRobo {
           moveCtrl = new MoveControlRemote();
         }
 
-        moveCtrl.setDefaultSpeed(150);
-        moveCtrl.setMaxSpeed(250);
+        moveCtrl.setMaxSpeed(150);
 
         if (remoteSensor != null) remoteSensor.setDataInputStream(sock);
 
@@ -146,8 +145,8 @@ public class HuQuizRobo {
           switch (command) {
             case AppCommand.COMMAND_ANSWER: {
               moveCtrl.reset();
-              if (params[0] == 1) moveCtrl.setDefaultSpeed(250);
-              if (params[0] == 2) moveCtrl.setDefaultSpeed(150);
+              if (params[0] == 1) moveCtrl.setMaxSpeed(250);
+              if (params[0] == 2) moveCtrl.setMaxSpeed(150);
               break;
             }
             case AppCommand.COMMAND_STOP: {
