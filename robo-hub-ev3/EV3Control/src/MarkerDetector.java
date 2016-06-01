@@ -1,7 +1,6 @@
 import lejos.hardware.BrickFinder;
 import lejos.hardware.ev3.EV3;
 import lejos.robotics.Color;
-import sun.security.util.Resources_it;
 
 import java.lang.reflect.Field;
 import java.util.HashSet;
