@@ -64,4 +64,8 @@ public class RemoteSensor extends EV3Sensor {
     }
   }
 
+  public void clear() {
+    speed[0] = speed[1] = 0;
+  }
+
 }

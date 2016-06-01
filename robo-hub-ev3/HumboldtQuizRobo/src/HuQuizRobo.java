@@ -121,6 +121,10 @@ public class HuQuizRobo {
         lineDetector.updateSensorDB(sensorDB);
         remoteSensor.updateSensorDB(sensorDB);
 
+        int colors[] = colorSensors.readLastSensorsValues();
+        lcd.clear(5);
+        lcd.drawString("Color: " + colors[0] + " / " + colors[1], 1, 5);
+
         if ((mode == ROBO_MODE_LINE) && markerDetect.hasMarkerDetected()) {
           mode = ROBO_MODE_MARKER;
           int markerCol = markerDetect.getDetectedMarker();
@@ -144,7 +148,6 @@ public class HuQuizRobo {
 
           switch (command) {
             case AppCommand.COMMAND_ANSWER: {
-              moveCtrl.reset();
               if (params[0] == 1) moveCtrl.setMaxSpeed(250);
               if (params[0] == 2) moveCtrl.setMaxSpeed(150);
               break;
@@ -159,6 +162,7 @@ public class HuQuizRobo {
 
           lcd.clear(6);
           moveCtrl.reset();
+          remoteSensor.clear();
 
         } else {
           if (!markerDetect.hasMarkerDetected()) {
@@ -195,17 +199,17 @@ public class HuQuizRobo {
 
         roboMotorCtl.setSpeed(speed[0], speed[1]);
 
-       /* lcd.clear(2);
+        lcd.clear(2);
         lcd.clear(3);
         lcd.clear(4);
         lcd.drawString("Speed: " + speed[0] + " / " + speed[1], 1, 2);
         if (moveCtrlInput.length > 1) {
-          lcd.drawString("Line: " + moveCtrlInput[0] + " " + moveCtrlInput[1], 1, 3);
+          lcd.drawString("Remote: " + moveCtrlInput[0] + " " + moveCtrlInput[1], 1, 3);
         } else {
           lcd.drawString("Line: " + moveCtrlInput[0] + "", 1, 3);
         }
         lcd.drawString("Mode: " + mode + "", 1, 4);
-        */
+
         Delay.msDelay((long) (1000 / frequency));
 
         running = running && Button.ESCAPE.isUp();

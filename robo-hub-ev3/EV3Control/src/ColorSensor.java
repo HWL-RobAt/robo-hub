@@ -38,6 +38,7 @@ public class ColorSensor extends EV3Sensor{
       colorSensor = new EV3ColorSensor(colorPort);
     } catch(Exception e) {
       System.out.println("Port " + port +" is not an ColorSensor");
+      System.exit(0);
       colorSensor = null;
     }
 

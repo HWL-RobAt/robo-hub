@@ -7,6 +7,7 @@ public class ColorSensorMulti extends EV3Sensor {
 
   String ports[] = null;
   ColorSensor cSensorList[] = null;
+  int lastColors[] = null;
 
   public ColorSensorMulti(String[] ports) {
     Random rand = new Random();
@@ -31,6 +32,8 @@ public class ColorSensorMulti extends EV3Sensor {
     for( int i = 0; i < iArray.length; i++) {
       iArray[i] = cSensorList[i].getNextSample();
     }
+
+    lastColors = iArray;
   }
 
   public void stop() {
@@ -39,4 +42,16 @@ public class ColorSensorMulti extends EV3Sensor {
       cSensorList[i].colorSensor.close();
     }
   }
+
+  /*
+  public void readSensors(int colors[]) {
+    for( int i = 0; i < cSensorList.length; i++) {
+      colors[i] = cSensorList[i].getNextSample();
+    }
+  }
+  */
+  public int[] readLastSensorsValues() {
+    return lastColors;
+  }
+
 }
