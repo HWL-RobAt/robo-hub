@@ -67,7 +67,7 @@ public class MarkerDetector extends EV3Sensor {
     }
 
     updateSensorInput(cSenMul);
-    cSenMul[0] = getSensorOutput();
+    rawSensorDataArray[0] = getSensorOutput();
   }
 
   public boolean hasMarkerDetected() {
