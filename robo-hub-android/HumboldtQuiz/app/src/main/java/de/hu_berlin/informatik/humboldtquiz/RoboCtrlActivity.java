@@ -61,23 +61,7 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
 
         if ( qvm == null ) qvm = new QuizViewManager(this);
 
-
-        //SIM
-        //ci = new ConnectionInfo("192.168.10.1", 2000); //SIM -> Laptop
-
-        //wifi HOME
-        //ci = new ConnectionInfo("192.168.0.236", 2000); //Dev -> Laptop
         ci = new ConnectionInfo("192.168.0.174", 2000); //Dev -> Robo
-
-        //Bluetooth
-        //ci = new ConnectionInfo("10.0.1.1", 2000);
-
-        //Robo-HUB
-        //ci = new ConnectionInfo("192.168.0.214", 2000);
-        //ci = new ConnectionInfo("192.168.0.141", 2000); //laptop- Kabel
-
-
-
         sc = new SocketConnector(ci);
         app2roboComCtrl = new AppToRoboCommunicationControl(sc,this);
 
@@ -89,15 +73,12 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
     }
 
-
     public void onClickConnect(View view) {
         if ( connectionMode == CONNECTION_MODE_DISCONNECTED ) {
             EditText etIP = (EditText)findViewById(R.id.editText_addr);
             String ipAddr = etIP.getText().toString();
 
-            if ( !ipAddr.equals("127.0.0.1")) {
-                ci.nameOrIP = ipAddr;
-            }
+            if ( !ipAddr.equals("127.0.0.1")) ci.nameOrIP = ipAddr;
 
             AsyncTask commTask = new AppToRoboCommunicationTask().execute(app2roboComCtrl);
 
@@ -167,12 +148,16 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
             setContentView(R.layout.activity_robo_ctrl);
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
+            if ( ! ci.nameOrIP.equals("127.0.0.1")) {
+                EditText etIP = (EditText) findViewById(R.id.editText_addr);
+                etIP.setText(ci.nameOrIP);
+            }
+
             setSpinnerItems();
 
             chronometer = (Chronometer)findViewById(R.id.chronometer);
 
             tv = (TextView)findViewById(R.id.textView_debug);
-
             if ( quizMode == QUIZ_MODE_RUNNING ) startChronometer(true);
         }
 
@@ -229,9 +214,8 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
                     Log.i("y: ", String.valueOf(y));
 
                     if (connectionMode == CONNECTION_MODE_CONNECTED) {
-                        if (action == 2)
-                            app2roboComCtrl.sendCommand(AppCommand.COMMAND_MOVE, x, y, 1);
-                        else app2roboComCtrl.sendCommand(AppCommand.COMMAND_MOVE, 0, 0, 0);
+                        if (action == 2) app2roboComCtrl.sendCommand(AppCommand.COMMAND_MOVE, x, y, 1);
+                        else             app2roboComCtrl.sendCommand(AppCommand.COMMAND_MOVE, 0, 0, 0);
                     }
 
                     return true;
@@ -272,6 +256,7 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
     public void onClickBack(View view) {
         System.out.println("back");
 
+        app2roboComCtrl.reset(); //delete old moves
         app2roboComCtrl.sendCommand(AppCommand.COMMAND_ANSWER,qvm.lastAnswerCorrect?1:2,0,0);
 
         updateView(true);
@@ -346,7 +331,7 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
 
             //else it will output the Roll, Pitch and Yawn values
             tv.setText("Orientation X : " + Integer.toString(x) + "\n" +
-                    "Orientation Y : " + Integer.toString(y));
+                       "Orientation Y : " + Integer.toString(y));
 
             app2roboComCtrl.sendCommand(AppCommand.COMMAND_MOVE, x, y, 1);
         }
