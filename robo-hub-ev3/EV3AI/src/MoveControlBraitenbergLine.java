@@ -35,13 +35,13 @@ public class MoveControlBraitenbergLine extends MoveControlBraitenberg {
         break;
       }
       case LineDetector.LINE_DETECT_LEFT: {
-        currentSpeed[LineDetector.RIGHT] = maxSpeed;
+        currentSpeed[LineDetector.RIGHT] = maxSpeed/2;
         currentSpeed[LineDetector.LEFT] = 0;
         break;
       }
       case LineDetector.LINE_DETECT_RIGHT: {
         currentSpeed[LineDetector.RIGHT] = 0;
-        currentSpeed[LineDetector.LEFT] = maxSpeed;
+        currentSpeed[LineDetector.LEFT] = maxSpeed/2;
         break;
       }
     }
