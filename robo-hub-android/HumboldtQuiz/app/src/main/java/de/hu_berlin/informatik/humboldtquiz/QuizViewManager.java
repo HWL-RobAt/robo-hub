@@ -30,7 +30,7 @@ public class QuizViewManager {
         try {
             //Create a InputStream to read the file into and get the file as a stream
             //InputStream inS = resources.getAssets().open("test_questions.csv");
-            InputStream inS = resources.getAssets().open("quest_cata_001.csv");
+            InputStream inS = resources.getAssets().open("quest_cata_002.csv");
             qc.loadCatalog(inS);
         } catch (IOException e) {
             throw new RuntimeException(e.getMessage());

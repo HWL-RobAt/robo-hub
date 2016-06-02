@@ -88,7 +88,7 @@
 
         <ImageView
             android:layout_width="match_parent"
-            android:layout_height="800dp"
+            android:layout_height="400dp"
             android:id="@+id/imageView_roboctrl_touch"
             android:layout_centerVertical="true"
             android:src="#31b7fa"

@@ -11,7 +11,10 @@
         android:ems="10"
         android:id="@+id/question"
         android:layout_weight="0.90"
-        android:enabled="true" />
+        android:enabled="true"
+        android:text="Nächste Frage"
+        android:gravity="left"
+        android:textSize="30dp" />
 
     <Button
         android:layout_width="match_parent"
@@ -19,14 +22,16 @@
         android:text="A"
         android:id="@+id/button_a"
         android:onClick="onClickA"
-        android:nestedScrollingEnabled="false" />
+        android:nestedScrollingEnabled="false"
+        android:textSize="30dp" />
 
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="B"
         android:id="@+id/button_b"
-        android:onClick="onClickB" />
+        android:onClick="onClickB"
+        android:textSize="30dp" />
 
     <Button
         android:layout_width="match_parent"
@@ -34,7 +39,8 @@
         android:text="C"
         android:id="@+id/button_c"
         android:onClick="onClickC"
-        android:nestedScrollingEnabled="false" />
+        android:nestedScrollingEnabled="false"
+        android:textSize="30dp" />
 
     <Button
         android:layout_width="match_parent"
@@ -43,7 +49,8 @@
         android:id="@+id/button_d"
         android:onClick="onClickD"
         android:nestedScrollingEnabled="false"
-        android:visibility="invisible" />
+        android:visibility="invisible"
+        android:textSize="30dp" />
 
     <EditText
         android:layout_width="match_parent"
@@ -51,7 +58,9 @@
         android:id="@+id/question_result"
         android:layout_gravity="center_horizontal"
         android:layout_weight="0.05"
-        android:visibility="invisible" />
+        android:visibility="invisible"
+        android:textSize="30dp"
+        android:text="Richtig/Falsch" />
 
     <Button
         android:layout_width="wrap_content"
