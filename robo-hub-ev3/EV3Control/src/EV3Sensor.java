@@ -11,4 +11,5 @@ public abstract class EV3Sensor {
   public void initSensorDB(SensorDB sensorDB) {
   }
 
+  public void reset() {}
 }

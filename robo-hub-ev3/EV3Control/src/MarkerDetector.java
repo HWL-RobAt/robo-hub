@@ -38,17 +38,16 @@ public class MarkerDetector extends EV3Sensor {
     detectMarker = false;
     detectedColor = Color.NONE;
     for ( int i = 0; i < colors.length; i++) {
-      if ( markerColors.contains(colors[i]) ) {
-        //if ( roundsWithNoMarker <= minRoundsToNextMarker ) {
+      if (markerColors.contains(colors[i])) {
+        if (roundsWithNoMarker >= minRoundsToNextMarker) {
           detectedColor = colors[i];
           detectMarker = true;
           roundsWithNoMarker = 0;
-          return;
-        //}
+        }
+        return;
       }
     }
-
-
+    roundsWithNoMarker++;
   }
 
   public int getSensorOutput() {
@@ -76,6 +75,7 @@ public class MarkerDetector extends EV3Sensor {
   public int getDetectedMarker() {
     return detectedColor;
   }
+
 
 }
 

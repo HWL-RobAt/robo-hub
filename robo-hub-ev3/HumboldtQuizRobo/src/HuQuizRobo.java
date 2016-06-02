@@ -31,10 +31,13 @@ public class HuQuizRobo {
     boolean running = false;
 
     int frequency = 50;
-    int markerColor[] = {Color.YELLOW, Color.GREEN};
-    int lineColor = Color.BLUE;
-    //int markerColor[] = {Color.GREEN, Color.BLACK};
-    //int lineColor = Color.RED;
+
+    int markerColor[] = { Color.GREEN, Color.BLACK };
+    int markerColorList[] = { Color.BLACK, Color.GREEN,
+                              Color.BLACK, Color.GREEN,
+                              Color.BLACK, Color.GREEN,
+                              Color.RED };
+    int lineColor = Color.ORANGE;
 
     int roboMoveMode = ROBO_MODE_CTRL_LINE;
 
