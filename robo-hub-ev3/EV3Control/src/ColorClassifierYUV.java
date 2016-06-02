@@ -1,10 +1,9 @@
-import lejos.robotics.Color;
+import lejos.robotics.*;
 
 /**
  * Created by robert on 31.05.16.
  */
-public class ColorDetector 
-{
+public class ColorClassifierYUV implements ColorDetector{
   // classifier params
   int brightnesConeOffset = 22;
   double brightnesConeRadiusWhite = 70.0;
@@ -37,12 +36,6 @@ public class ColorDetector
   }
   */
   
-  static public void rgb2yuv(int rgb[], int yuv[]) 
-  {
-	yuv[0] = ((  66 * rgb[0] + 129 * rgb[1] +  25 * rgb[2] + 128) >> 8) +  16;
-	yuv[1] = (( -38 * rgb[0] -  74 * rgb[1] + 112 * rgb[2] + 128) >> 8) + 128;
-	yuv[2] = (( 112 * rgb[0] -  94 * rgb[1] -  18 * rgb[2] + 128) >> 8) + 128;
-  }
 
   /*
   public int YUVDetector(int rgb[]) {
@@ -71,14 +64,26 @@ public class ColorDetector
     return 0;
   }
   */
-  
-  public int getColor(float[] rgb) 
+
+  static public void rgb2yuv(int rgb[], int yuv[]) {
+	  yuv[0] = ((  66 * rgb[0] + 129 * rgb[1] +  25 * rgb[2] + 128) >> 8) +  16;
+	  yuv[1] = (( -38 * rgb[0] -  74 * rgb[1] + 112 * rgb[2] + 128) >> 8) + 128;
+	  yuv[2] = (( 112 * rgb[0] -  94 * rgb[1] -  18 * rgb[2] + 128) >> 8) + 128;
+  }
+
+  public Color getColor() {
+    return
+  }
+
+  public int getColorID() {
+    return  0
+    }
+
+
+  public int getColor(int[] rgb)
   {
-	  int R = (int)(rgb[0]*255+0.5);
-	  int G = (int)(rgb[1]*255+0.5);
-	  int B = (int)(rgb[2]*255+0.5);
-	  int yuv[] = {0, 0, 0};
-	  rgb2yuv(new int[]{R,G,B}, yuv);
+    int yuv[] = {0, 0, 0};
+	  rgb2yuv(rgb, yuv);
 	  
 	  if(noColor(yuv)) 
 	  {
@@ -110,7 +115,7 @@ public class ColorDetector
 	  return Math.atan2(yuv[2] - 128.0, yuv[1] - 128.0);
   }
 	
-  // return true if the pixel doesn'r have enough chroma
+  // return true if the pixel doesn't have enough chroma
   private boolean noColor(int yuv[]) {
 	  return noColor(yuv[0],yuv[1],yuv[2]);
   }
