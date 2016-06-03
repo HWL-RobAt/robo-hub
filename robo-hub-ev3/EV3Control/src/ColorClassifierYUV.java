@@ -1,12 +1,10 @@
 import lejos.hardware.*;
 import lejos.hardware.Button;
 import lejos.robotics.Color;
+import sun.plugin2.gluegen.runtime.BufferFactory;
 
 import java.awt.*;
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.Properties;
 
 /**
@@ -37,36 +35,44 @@ public class ColorClassifierYUV extends ColorClassifier {
 
   int noColorIdY[] = {Color.BLACK, Color.GRAY, Color.WHITE, Color.NONE};
 
+  private boolean debugYUV = false;
+  private PrintWriter debugWriter = null;
+
   public Color getColor(int rgb[]) {
     return new Color(rgb[0], rgb[1], rgb[2], getColorID(rgb));
   }
 
   public int getColorID(int rgb[]) {
+    int color = Color.NONE;
+
     int yuv[] = {0, 0, 0};
     rgb2yuv(rgb, yuv);
 
     int angleInt = (int)((Math.round((180.0 * colorAngle(yuv))/Math.PI) + 360) % 360);
 
-    //System.out.println("Y: " + yuv[0] + " Angle: " + angleInt);
-
     if (noColor(yuv)) {
       for (int c = 0; noColorIdY[c] != Color.NONE; c++) {
         if ((noColorRangesY[c][0] <= yuv[0]) && ((yuv[0] <= noColorRangesY[c][1])))
-          return noColorIdY[c];
+          color = noColorIdY[c];
       }
     } else {
       for (int c = 0; colorIdUV[c] != Color.NONE; c++) {
         if ((colorAngleUV[c][0] <= angleInt) && ((angleInt <= colorAngleUV[c][1]))) {
-          if ( colorAngleUV[c][2] == -1) return colorIdUV[c];
+          if ( colorAngleUV[c][2] == -1) color = colorIdUV[c];
           else {
             if ((colorAngleUV[c][2] <= yuv[0]) && ((yuv[0] <= colorAngleUV[c][3])))
-              return colorIdUV[c];
+              color = colorIdUV[c];
           }
         }
       }
     }
 
-    return Color.NONE;
+    if ( debugYUV ) {
+      int uvLen = (yuv[1] - 128) * (yuv[1] - 128) + (yuv[2] - 128) * (yuv[2] - 128);
+      debugWriter.println(color + "," + yuv[0] + "," + angleInt + "," + Math.round(Math.sqrt(uvLen)));
+    }
+
+    return color;
   }
 
   private double colorAngle(int yuv[]) {
@@ -89,7 +95,6 @@ public class ColorClassifierYUV extends ColorClassifier {
     double brightnesAlpha = (brightnesConeRadiusWhite - brightnesConeRadiusBlack) / (double)(255 - brightnesConeOffset);
     double cromaThreshold = Math.max(brightnesConeRadiusBlack, brightnesConeRadiusBlack + brightnesAlpha * (double)(y-brightnesConeOffset));
     int uvLen = (u - 128)*(u - 128) + (v - 128)*(v - 128);
-    //System.out.println("UVLen: " + Math.round(Math.sqrt(uvLen)));
     return uvLen < (cromaThreshold * cromaThreshold); // sqrt(Y) < X --> y < (X*X)
   }
 
@@ -101,8 +106,14 @@ public class ColorClassifierYUV extends ColorClassifier {
       p.load(new FileReader(filename));
     } catch ( FileNotFoundException e) {
       System.out.println("File " + filename + " not found");
+      try {
+        Thread.sleep(20000);
+      }catch (InterruptedException ie) {}
     } catch ( IOException ioe ) {
-      System.out.println("File " + filename + " not found");
+      System.out.println("File(io) " + filename + " not found");
+      try {
+        Thread.sleep(20000);
+      }catch (InterruptedException ie) {}
     }
 
     brightnesConeOffset = Integer.parseInt(p.getProperty("brightnesConeOffset"));
@@ -143,6 +154,9 @@ public class ColorClassifierYUV extends ColorClassifier {
       fr.close();
     } catch (FileNotFoundException fnfE) {
       System.out.println("File " + colorDataTable + " not found");
+      try {
+        Thread.sleep(20000);
+      }catch (InterruptedException ie) {}
       throw new RuntimeException();
     } catch (IOException e) {
       throw new RuntimeException(e.getMessage());
@@ -152,5 +166,23 @@ public class ColorClassifierYUV extends ColorClassifier {
     colorIdUV[colorIndex] = Color.NONE;
   }
 
+  public void startDebug(String filename) {
+    try {
+      debugWriter = new PrintWriter(filename);
+      debugWriter.println("C,Y,Angle,UVLen");
+      debugYUV = true;
+    } catch (IOException ioe) {
+      System.out.println("File " + filename + " could not be created");
+      throw new RuntimeException();
+    }
+  }
+
+  public void stopDebug() {
+    if ( debugWriter != null ) {
+      debugWriter.close();
+      debugWriter = null;
+      debugYUV = false;
+    }
+  }
 }
 

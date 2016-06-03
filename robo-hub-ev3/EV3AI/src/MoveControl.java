@@ -1,3 +1,5 @@
+import java.io.PrintWriter;
+
 /**
  * Created by robert on 14.05.16.
  */
@@ -6,6 +8,8 @@ public abstract class MoveControl {
   public int maxSpeed = 0;
 
   int currentSpeed[] = {0,0};
+
+  PrintWriter debugWriter = null;
 
   public void setMaxSpeed(int speed) {
     this.maxSpeed = speed;
@@ -22,4 +26,9 @@ public abstract class MoveControl {
   public int[] getNextSpeed() {
     return null;
   }
+
+  public void setDebugWriter(PrintWriter debugWriter) {
+    this.debugWriter = debugWriter;
+  }
+
 }

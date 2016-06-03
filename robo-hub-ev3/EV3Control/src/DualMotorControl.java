@@ -11,8 +11,8 @@ public class DualMotorControl implements EV3Controler {
   }
 
   public void setSpeed(int rSpeed, int lSpeed) {
-    motorR.setSpeed(Math.abs(rSpeed));
-    motorL.setSpeed(Math.abs(lSpeed));
+    if ( rSpeed != 0 ) motorR.setSpeed(Math.abs(rSpeed));
+    if ( lSpeed != 0 ) motorL.setSpeed(Math.abs(lSpeed));
 
     if (rSpeed == 0)  motorR.stop();
     else {
@@ -30,6 +30,22 @@ public class DualMotorControl implements EV3Controler {
   public void stop() {
     motorR.stop();
     motorL.stop();
+  }
+
+  public void stop(boolean wait) {
+    stop();
+    if (wait) {
+      try {
+        motorL.wait();
+      } catch (InterruptedException ie) {
+
+      }
+      try {
+        motorR.wait();
+      } catch (InterruptedException ie) {
+
+      }
+    }
   }
 
   public void backward(int speed) {

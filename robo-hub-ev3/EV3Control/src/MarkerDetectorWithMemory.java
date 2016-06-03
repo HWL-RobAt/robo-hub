@@ -32,4 +32,13 @@ public class MarkerDetectorWithMemory extends MarkerDetector {
     if (detectMarker) detectedColor = histColor;
   }
 
+  public void reset() {
+    super.reset();
+
+    for ( int i = 0; i < detectionHistory.length; i++)
+      detectionHistory[i] = 0;
+    histIndex = 0;
+    histSum = 0;
+  }
+
 }

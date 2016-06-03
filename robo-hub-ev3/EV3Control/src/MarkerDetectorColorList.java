@@ -6,33 +6,30 @@ public class MarkerDetectorColorList extends MarkerDetectorWithMemory  {
   int markerColorList[] = null;
   int markerColorListIndex = 0;
 
-
   public MarkerDetectorColorList(int colors[]) {
     super(colors);
     markerColorList = colors;
     markerColorListIndex = 0;
+    setNextColor();
   }
 
   private void setNextColor() {
     markerColors.clear();
     markerColors.add(markerColorList[markerColorListIndex]);
-    markerColorListIndex++;
+    markerColorListIndex = (markerColorListIndex+1) % markerColorList.length;
   }
 
   public void reset() {
     markerColorListIndex = 0;
   }
 
-  public boolean isLastMarker {
+  public void updateSensorInput(int colors[]) {
+    detectMarker = false;
+    super.updateSensorInput(colors);
 
+    if (detectMarker) {
+      setNextColor();
+      super.reset();
+    }
   }
-
-
-  else {
-          if ( colors[i] == markerColorList[markerColorListIndex] ) {
-             markerColorListIndex++;
-             detectedColor = colors[i];
-             detectMarker = true;
-          }
-
 }

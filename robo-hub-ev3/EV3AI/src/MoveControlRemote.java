@@ -1,3 +1,5 @@
+import java.io.PrintWriter;
+
 /**
  * Created by robert on 17.05.16.
  */
@@ -10,6 +12,15 @@ public class MoveControlRemote extends MoveControl {
   }
 
   public void updateSensorInputs(int input[]) {
+
+    if (debugWriter != null) {
+      debugWriter.println(input[0] + "," + input[1]);
+    }
+
+    if ((input[0] == 0) && (input[1] == 0)) {
+      currentSpeed[0] = currentSpeed[1] = 0;
+      return;
+    }
 
     switch (speedMapping) {
       case 0: {
@@ -32,8 +43,8 @@ public class MoveControlRemote extends MoveControl {
         // Y is forward/backward - Speed
         // X gives distribution among both motors
 
-        currentSpeed[0] = (-16 * (input[1] * Math.min(50, 50 - input[0]))) / 100;
-        currentSpeed[1] = (-16 * (input[1] * Math.min(50, 50 + input[0]))) / 100;
+        currentSpeed[0] = (-1 * maxSpeed * (input[1] * Math.min(50, 50 - input[0]))) / (2500);
+        currentSpeed[1] = (-1 * maxSpeed * (input[1] * Math.min(50, 50 + input[0]))) / (2500);
 
         break;
       }
@@ -43,6 +54,5 @@ public class MoveControlRemote extends MoveControl {
   public int[] getNextSpeed() {
     return currentSpeed;
   }
-
 
 }

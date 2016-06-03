@@ -1,5 +1,6 @@
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
 
 /**
  * Created by robert on 17.05.16.
@@ -10,11 +11,13 @@ public class RemoteSensor extends EV3Sensor {
 
   int speed[] = null;
 
+  private PrintWriter debugWriter = null;
+
   public RemoteSensor(SocketConnector inS) {
     this.inS = inS;
     speed = new int[2];
     speed[0] = 0;
-    speed[1] = 1;
+    speed[1] = 0;
   }
 
   public void setDataInputStream(SocketConnector inS) {
@@ -22,6 +25,9 @@ public class RemoteSensor extends EV3Sensor {
   }
 
   public void updateSensorInput(int command[]) {
+    if ( debugWriter != null) {
+      debugWriter.println("Move: " + command[0] + "," + command[1] + "," + command[2]);
+    }
     if ( command[2] == 1 ) {
       speed[0] = Math.max(Math.min(100,command[0]),0) - 50;
       speed[1] = Math.max(Math.min(100,command[1]),0) - 50;
@@ -66,6 +72,10 @@ public class RemoteSensor extends EV3Sensor {
 
   public void clear() {
     speed[0] = speed[1] = 0;
+  }
+
+  public void setDebugWriter(PrintWriter debugWriter) {
+    this.debugWriter = debugWriter;
   }
 
 }

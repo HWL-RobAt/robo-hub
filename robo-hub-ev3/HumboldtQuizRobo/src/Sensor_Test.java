@@ -16,20 +16,35 @@ public class Sensor_Test
 		detector.loadConfig("/home/robo-hub/color_clf.properties");
 
 		s.setCurrentMode("RGB");
-		while(Button.ESCAPE.isUp())
-		{
-			s.fetchSample(sample, 0);
-			int color = detector.getColorID(new int[]{(int)(sample[0]*255+0.5),
-					                                      (int)(sample[1]*255+0.5),
-					                                      (int)(sample[2]*255+0.5)});
-			System.out.println(ColorClassifier.colorToString(color));
+
+		int number = 0;
+
+		while ( Button.ESCAPE.isUp()) {
+
+			System.out.println("Next is: " + number);
+			Thread.sleep(5000);
+
+		  detector.startDebug("/home/robo-hub/coloryuv.debug_" + number);
+
+		  while(Button.UP.isUp()) {
+  			s.fetchSample(sample, 0);
+	  		int color = detector.getColorID(new int[]{(int)(sample[0]*255+0.5),
+		  			                                      (int)(sample[1]*255+0.5),
+			  		                                      (int)(sample[2]*255+0.5)});
+				System.out.println(ColorClassifier.colorToString(color));
 			
-			Thread.sleep(20);
+				Thread.sleep(50);
+			}
+
+			detector.stopDebug();
+
+			number++;
+			System.out.println("Pressed and Hold Esc to quit!");
+			Thread.sleep(2000);
 		}
 
 		s.close();
 
 	}
 
-	
 }
