@@ -32,6 +32,7 @@ class AppToRoboCommunicationTask extends AsyncTask<AppToRoboCommunicationControl
                         if (ap2roboConn.isClosed()) {
                             System.out.println("Socket is Closed");
                         } else {
+                            System.out.println("Send move cmd:" + txCommand);
                             ap2roboConn.sendInt(txCommand);
                         }
                     }
@@ -57,9 +58,17 @@ class AppToRoboCommunicationTask extends AsyncTask<AppToRoboCommunicationControl
         int params[] = { 0,0,0 };
         int command = AppCommand.decode(rxTxInt[0], params);
 
-        if ( command == AppCommand.COMMAND_QUESTION ) {
-            app2roboComCtrl.reset();
-            app2roboComCtrl.appCompatActivity.qvm.nextQuestion();
+        switch ( command ) {
+            case AppCommand.COMMAND_QUESTION: {
+                app2roboComCtrl.reset();
+                app2roboComCtrl.appCompatActivity.qvm.nextQuestion();
+                break;
+            }
+            case AppCommand.COMMAND_STOP: {
+                app2roboComCtrl.reset();
+                app2roboComCtrl.appCompatActivity.stopQuiz(false);
+                break;
+            }
         }
     }
 

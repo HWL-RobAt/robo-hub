@@ -65,7 +65,7 @@ public class Question {
     return isCorrectAnswer(ansIndex);
   }
 
-  public void randQuestion() {
+  public void randAnswers() {
     Random rand = new Random();
     int randRotate = rand.nextInt(answers.length); //rotate using rand (0,length-1)
     if ( randRotate != 0 ) {

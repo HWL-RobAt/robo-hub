@@ -23,6 +23,8 @@ public class QuestionsCatalog {
   int currentLevel = -1;
   List<Question> questionListForLevel = null;
 
+  boolean randQuestion = false;
+
   public QuestionsCatalog() {
     rand = new Random();
     rand.setSeed(0);
@@ -109,14 +111,17 @@ public class QuestionsCatalog {
   public Question getNextQuestion() {
     if ( questionListForLevel.size() == 0 ) return null;
 
-    int q_index = rand.nextInt(questionListForLevel.size());
+    int q_index = randQuestion?rand.nextInt(questionListForLevel.size()):0;
 
     Question q = questionListForLevel.get(q_index);
     questionListForLevel.remove(q_index);
 
-    q.randQuestion();
+    q.randAnswers();
 
     return q;
   }
 
+  public void setRandQuestion(boolean randQuestion) {
+    this.randQuestion = randQuestion;
+  }
 }

@@ -29,7 +29,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/editText_addr"
-                android:layout_weight="0.9"
+                android:layout_weight="0.40"
                 android:enabled="true"
                 android:editable="true"
                 android:text="127.0.0.1" />
@@ -56,45 +56,54 @@
                 android:layout_height="38dp"
                 android:id="@+id/spinner_level"
                 android:spinnerMode="dropdown"
-                android:layout_weight="0.25" />
+                android:layout_weight="0.10" />
 
             <Spinner
                 android:layout_width="86dp"
                 android:layout_height="33dp"
                 android:id="@+id/spinner_roboctrl"
                 android:spinnerMode="dropdown"
-                android:layout_weight="0.25" />
+                android:layout_weight="0.10" />
 
             <Chronometer
                 android:layout_width="48dp"
-                android:layout_height="wrap_content"
+                android:layout_height="50dp"
                 android:id="@+id/chronometer"
                 android:layout_gravity="bottom|center"
-                android:layout_weight="0.40"
+                android:layout_weight="0.60"
                 android:textSize="24dp"
                 android:textAlignment="center"
                 android:gravity="center_horizontal" />
 
             <Button
                 android:layout_width="wrap_content"
-                android:layout_height="38dp"
+                android:layout_height="63dp"
                 android:text="Start"
                 android:id="@+id/button_start"
                 android:enabled="true"
                 android:onClick="onClickStart"
-                android:layout_weight="0.10" />
+                android:layout_weight="0.20"
+                android:textSize="24dp" />
 
         </LinearLayout>
 
         <ImageView
             android:layout_width="match_parent"
-            android:layout_height="400dp"
+            android:layout_height="700dp"
             android:id="@+id/imageView_roboctrl_touch"
             android:layout_centerVertical="true"
             android:src="#31b7fa"
             android:layout_marginTop="20dp"
             android:layout_marginBottom="20dp"
             android:layout_gravity="center_horizontal" />
+
+        <TextView
+            android:layout_width="587dp"
+            android:layout_height="123dp"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:id="@+id/textView_info"
+            android:textSize="30dp"
+            android:gravity="top|left" />
 
         <Button
             style="?android:attr/buttonStyleSmall"
@@ -103,14 +112,8 @@
             android:text="Fragen"
             android:id="@+id/question_button"
             android:layout_gravity="center_horizontal"
-            android:onClick="onClickQuestion" />
-
-        <TextView
-            android:layout_width="587dp"
-            android:layout_height="match_parent"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="Debug"
-            android:id="@+id/textView_debug" />
+            android:onClick="onClickQuestion"
+            android:visibility="invisible" />
 
     </LinearLayout>
 

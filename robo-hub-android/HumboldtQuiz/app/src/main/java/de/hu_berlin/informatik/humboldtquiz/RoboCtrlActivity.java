@@ -53,7 +53,7 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
     //the Sensor Manager
     private SensorManager sensorManager;
 
-    TextView tv = null;
+    TextView tvInfo = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -114,13 +114,29 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
 
         } else {
             app2roboComCtrl.sendCommand(AppCommand.COMMAND_STOP);
-
-            stopChronometer(false);
-
-            quizMode = QUIZ_MODE_STOPPED;
+            stopQuiz(true);
         }
 
         updateView(false);
+    }
+
+    public void stopQuiz(boolean stoppedByUser) {
+        stopChronometer(false);
+        quizMode = QUIZ_MODE_STOPPED;
+
+        if (!stoppedByUser) {
+            updateView(false);
+
+            chronometer = (Chronometer)findViewById(R.id.chronometer);
+
+            long elapsedMillis = SystemClock.elapsedRealtime() - chronometer.getBase();
+            long minutes = (elapsedMillis/1000)/60;
+            long sec = (elapsedMillis/1000)%60;
+
+            String timeString = "" + minutes + "Minute" + ((minutes==1)?" und ":"n und ") + sec + "Sekunde" + ((sec==1)?"":"n");
+
+            tvInfo.setText("Herzlichen Glückwunsch!\nDu hast Reise in " + timeString + " geschafft!");
+        }
     }
 
     public void setSpinnerItems() {
@@ -157,7 +173,7 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
 
             chronometer = (Chronometer)findViewById(R.id.chronometer);
 
-            tv = (TextView)findViewById(R.id.textView_debug);
+            tvInfo = (TextView)findViewById(R.id.textView_info);
             if ( quizMode == QUIZ_MODE_RUNNING ) startChronometer(true);
         }
 
@@ -197,8 +213,9 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
             buttonStart.setText("Stop");
         }
 
+        final ImageView imageView = (ImageView) findViewById(R.id.imageView_roboctrl_touch);
+
         if ((roboctrlMode == ROBOCTRL_MODE_TOUCH) && (quizMode == QUIZ_MODE_RUNNING)) {
-            final ImageView imageView = (ImageView) findViewById(R.id.imageView_roboctrl_touch);
 
             imageView.setOnTouchListener(new View.OnTouchListener() {
                 @Override
@@ -215,7 +232,8 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
 
                     if (connectionMode == CONNECTION_MODE_CONNECTED) {
                         if (action == 2) app2roboComCtrl.sendCommand(AppCommand.COMMAND_MOVE, x, y, 1);
-                        else             app2roboComCtrl.sendCommand(AppCommand.COMMAND_MOVE, 0, 0, 0);
+                        //else             app2roboComCtrl.sendCommand(AppCommand.COMMAND_MOVE, 0, 0, 0);
+                        else             app2roboComCtrl.sendCommand(AppCommand.COMMAND_MOVE, 1, 1, 1);
                     }
 
                     return true;
@@ -319,7 +337,7 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
         }
 
         //else it will output the Roll, Pitch and Yawn values
-        //tv.setText("Orientation X (Roll) :" + Float.toString(event.values[2]) + "\n" +
+        //tvInfo.setText("Orientation X (Roll) :" + Float.toString(event.values[2]) + "\n" +
         //           "Orientation Y (Pitch) :" + Float.toString(event.values[1]) + "\n" +
         //           "Orientation Z (Yaw) :"+ Float.toString(event.values[0]));
 
@@ -330,8 +348,8 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
             int y = (int) Math.max(Math.min(50 + Math.round(-12.5 * event.values[0]), 100), 0);
 
             //else it will output the Roll, Pitch and Yawn values
-            tv.setText("Orientation X : " + Integer.toString(x) + "\n" +
-                       "Orientation Y : " + Integer.toString(y));
+            //tvInfo.setText("Orientation X : " + Integer.toString(x) + "\n" +
+            //               "Orientation Y : " + Integer.toString(y));
 
             app2roboComCtrl.sendCommand(AppCommand.COMMAND_MOVE, x, y, 1);
         }

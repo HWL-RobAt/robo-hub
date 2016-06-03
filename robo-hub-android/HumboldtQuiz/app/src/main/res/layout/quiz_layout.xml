@@ -68,5 +68,6 @@
         android:text="Weiter"
         android:id="@+id/button_resume"
         android:layout_gravity="center_horizontal"
-        android:onClick="onClickBack" />
+        android:onClick="onClickBack"
+        android:textSize="30dp" />
 </LinearLayout>
