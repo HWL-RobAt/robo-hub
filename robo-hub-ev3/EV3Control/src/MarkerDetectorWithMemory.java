@@ -10,7 +10,7 @@ public class MarkerDetectorWithMemory extends MarkerDetector {
 
   public MarkerDetectorWithMemory(int colors[]) {
     super(colors);
-    setHistoryLength(4);
+    setHistoryLength(20);
   }
 
   public void setHistoryLength(int l) {

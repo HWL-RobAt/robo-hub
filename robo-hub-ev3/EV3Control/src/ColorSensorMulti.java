@@ -21,6 +21,11 @@ public class ColorSensorMulti extends EV3Sensor {
     }
   }
 
+  public void configureColorSensors(String configfile) {
+    for( int i = 0; i < ports.length; i++)
+      cSensorList[i].configureClassifier(configfile);
+  }
+
   public void updateSensorDB(SensorDB sensorDB) {
     int iArray[] = (int[])sensorDB.getSensorData(sensorDBName); //name of instance
 

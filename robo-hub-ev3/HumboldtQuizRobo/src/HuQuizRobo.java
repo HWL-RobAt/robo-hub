@@ -28,6 +28,9 @@ public class HuQuizRobo {
   public static final int ROBO_MODE_CTRL_LINE = 2;
   public static final int ROBO_MODE_CTRL_DIST = 3;
 
+  public static final int ROBO_TOUR_ALEXANDER = 0;
+  public static final int ROBO_TOUR_TEST = 1;
+
 
   public static void main(String[] args) {
 
@@ -39,28 +42,66 @@ public class HuQuizRobo {
 
     int frequency = 50;
 
-/*    int markerColor[] = { Color.BLACK, Color.GREEN,
-                          Color.BLACK, Color.GREEN,
-                          Color.BLACK, Color.GREEN,
-                          Color.RED };
+    int markerColor[] = null;
+    int lineColor = Color.NONE;
 
-    int lineColor = Color.ORANGE;*/
-    int markerColor[] = { Color.RED, Color.GREEN,
-                          Color.RED, Color.GREEN,
-                          Color.RED, Color.BLACK };
-
-    int lineColor = Color.WHITE;
-
-    int roboMoveMode = ROBO_MODE_CTRL_LINE;
+    int tour = ROBO_TOUR_ALEXANDER;
+    String configfilePrefix = "/home/robo-hub/";
 
     EV3 ev3 = (EV3) BrickFinder.getLocal();
     TextLCD lcd = ev3.getTextLCD();
     Keys keys = ev3.getKeys();
 
+    lcd.drawString("Alex: Up Indoor: Down", 1, 2);
+
+    int pressedKey = keys.waitForAnyPress();
+
+    if ( pressedKey == Button.ID_DOWN ) tour = ROBO_TOUR_TEST;
+
+    lcd.clear(2);
+    lcd.drawString("ColorTab: U/D/L/R", 1, 2);
+
+    pressedKey = keys.waitForAnyPress();
+
+    String colortabPost = "";
+
+    if ( pressedKey == Button.ID_DOWN ) colortabPost = "_1";
+    if ( pressedKey == Button.ID_LEFT ) colortabPost = "_2";
+    if ( pressedKey == Button.ID_RIGHT ) colortabPost = "_3";
+
+    if ( tour == ROBO_TOUR_ALEXANDER ) {
+
+      int tour_markerColor[] = { Color.RED, Color.GREEN,
+                                 Color.RED, Color.GREEN,
+                                 Color.RED, Color.BLACK };
+
+      markerColor = tour_markerColor;
+
+      lineColor = Color.WHITE;
+
+      configfilePrefix = configfilePrefix + "alexander/";
+
+    } else {
+      int tour_markerColor[] = { Color.BLACK, Color.GREEN,
+                                 Color.BLACK, Color.GREEN,
+                                 Color.BLACK, Color.GREEN,
+                                 Color.RED};
+
+      lineColor = Color.ORANGE;
+
+      configfilePrefix = configfilePrefix + "test/";
+    }
+
+    lcd.clear(2);
+
+    int roboMoveMode = ROBO_MODE_CTRL_LINE;
+
     SensorDB sensorDB = new SensorDB();
 
     String colorSensorPorts[] = {"S1", "S2"};
+
     ColorSensorMulti colorSensors = new ColorSensorMulti(colorSensorPorts);
+    colorSensors.configureColorSensors(configfilePrefix + "color_clf" + colortabPost + ".properties");
 
     LineDetector lineDetector = new LineDetector(lineColor);
 

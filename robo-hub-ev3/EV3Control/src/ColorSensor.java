@@ -71,7 +71,6 @@ public class ColorSensor extends EV3Sensor{
       case COLOR_CLASSIFIER_MODE_YUV:
         colorSensor.setCurrentMode("RGB");
         colorClf = new ColorClassifierYUV();
-        colorClf.loadConfig("/home/robo-hub/color_clf.properties");
         sampleSize = 3; //colorSensorSP.sampleSize();
         break;
     }
@@ -81,6 +80,12 @@ public class ColorSensor extends EV3Sensor{
     colorSensorSample = new float[sampleSize];
     colorSensorSampleInt = new int[sampleSize];
   }
+
+    public void configureClassifier(String configfile) {
+      if ( colorDetectionMode == COLOR_CLASSIFIER_MODE_YUV ) {
+        colorClf.loadConfig(configfile);
+      }
+    }
 
   public int getNextSample() {
     return getNextSample(null);
