@@ -4,6 +4,8 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/HumboldtQuiz.iml" filepath="$PROJECT_DIR$/HumboldtQuiz.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/connector/connector.iml" filepath="$PROJECT_DIR$/connector/connector.iml" />
+      <module fileurl="file://$PROJECT_DIR$/quizlogic/quizlogic.iml" filepath="$PROJECT_DIR$/quizlogic/quizlogic.iml" />
     </modules>
   </component>
 </project>
