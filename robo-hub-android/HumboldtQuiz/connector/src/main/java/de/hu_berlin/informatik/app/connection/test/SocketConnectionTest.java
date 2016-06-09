@@ -18,10 +18,10 @@ public class SocketConnectionTest {
     ConnectionInfo ci = new ConnectionInfo(args[1]);
     SocketConnection csock = new SocketConnection(ci);
     if ( args[0].equals("c")) {
-      csock.write();
+      csock.writeString("Hello World");
     } else if ( args[0].equals("s")) {
       csock.waitForClient();
-      csock.read();
+      csock.readString();
     } else {
       System.out.println("Unknown mode \"" + args[0] + "\".");
       System.exit(0);

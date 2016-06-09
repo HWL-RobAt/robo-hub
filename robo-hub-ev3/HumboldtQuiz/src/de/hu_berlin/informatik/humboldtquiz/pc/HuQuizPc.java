@@ -3,6 +3,7 @@ package de.hu_berlin.informatik.humboldtquiz.pc;
 import de.hu_berlin.informatik.app.connection.ConnectionInfo;
 import de.hu_berlin.informatik.app.connection.SocketConnection;
 import de.hu_berlin.informatik.app.connection.protocol.EV3Command;
+import de.hu_berlin.informatik.ev3.sim.KeyConsole;
 import de.hu_berlin.informatik.humboldtquiz.quizlogic.Question;
 import de.hu_berlin.informatik.humboldtquiz.quizlogic.QuestionsCatalog;
 

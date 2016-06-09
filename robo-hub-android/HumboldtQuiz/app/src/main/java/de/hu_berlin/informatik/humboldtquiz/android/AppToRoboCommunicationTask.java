@@ -21,7 +21,7 @@ class AppToRoboCommunicationTask extends AsyncTask<AppToRoboCommunicationControl
 
             ap2roboConn.init();
 
-            while ( ! ap2roboConn.isClosed() ) {
+            while ( ! app2roboComCtrl.closeIt ) {
                 if (ap2roboConn.rxAvailable()) {
                     int rx = ap2roboConn.receiveInt();
                     System.out.println("RX: " + rx);
@@ -42,7 +42,15 @@ class AppToRoboCommunicationTask extends AsyncTask<AppToRoboCommunicationControl
                 }
             }
 
+            //send the rest
+            int txCommand = app2roboComCtrl.getNextSendCommand();
+            while (txCommand != -1) {
+                ap2roboConn.sendInt(txCommand);
+                txCommand = app2roboComCtrl.getNextSendCommand();
+            }
+
             app2roboComCtrl.reset();
+            ap2roboConn.close();
 
             System.out.println("ConnTaskFin");
             return app2roboComCtrl;

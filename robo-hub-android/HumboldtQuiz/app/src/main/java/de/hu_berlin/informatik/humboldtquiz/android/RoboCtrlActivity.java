@@ -92,7 +92,7 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
             connectionMode = CONNECTION_MODE_CONNECTED;
         } else {
             app2roboComCtrl.sendCommand(EV3Command.COMMAND_DISCONNECT);
-            app2roboComCtrl.ap2roboConn.close();
+            app2roboComCtrl.closeConnection();
 
             System.out.println("Disconnect");
 
@@ -238,7 +238,6 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
                     if (connectionMode == CONNECTION_MODE_CONNECTED) {
                         if (action == 2) app2roboComCtrl.sendCommand(EV3Command.COMMAND_MOVE, x, y, 1);
                         else             app2roboComCtrl.sendCommand(EV3Command.COMMAND_MOVE, 0, 0, 0);
-                        //else             app2roboComCtrl.sendCommand(EV3Command.COMMAND_MOVE, 1, 1, 1);
                     }
 
                     return true;

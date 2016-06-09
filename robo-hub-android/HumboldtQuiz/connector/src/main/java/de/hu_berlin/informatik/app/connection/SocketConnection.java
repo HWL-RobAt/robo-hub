@@ -75,21 +75,20 @@ public class SocketConnection implements Connection {
     }
   }
 
-  public int read() {
+  public String readString() {
+    String rx = null;
     try {
-      //Test msg from laptop
-      System.out.println(in.readUTF());
+      rx = in.readUTF();
     } catch ( IOException ioe) {
-      System.out.println("Write error.");
+      System.out.println("Socket error.");
     }
 
-    return 0;
+    return rx;
   }
 
-  public int write() {
+  public int writeString(String msg) {
     try {
-      //Test msg from laptop
-      out.writeUTF("Hello EV3!");
+      out.writeUTF(msg);
     } catch ( IOException ioe) {
       System.out.println("Write error.");
     }
@@ -155,6 +154,7 @@ public class SocketConnection implements Connection {
   }
 
   public boolean rxAvailable() {
+    if (hasPrefetched) return true;
     int rxCount = 0;
     try {
       rxCount = in.available();

@@ -7,12 +7,13 @@ public class EV3Command {
   public static final int COMMAND_NONE = 0;
   public static final int COMMAND_START = 1;
   public static final int COMMAND_STOP = 2;
-  public static final int COMMAND_DISCONNECT = 3;
-  public static final int COMMAND_MOVE = 4;
-  public static final int COMMAND_SENSOR = 5;
-  public static final int COMMAND_QUESTION = 6;
-  public static final int COMMAND_ANSWER = 7;
-  public static final int COMMAND_CONFIG = 8;
+  public static final int COMMAND_CONNECT = 3;
+  public static final int COMMAND_DISCONNECT = 4;
+  public static final int COMMAND_CONFIG = 5;
+  public static final int COMMAND_MOVE = 6;
+  public static final int COMMAND_SENSOR = 7;
+  public static final int COMMAND_QUESTION = 8;
+  public static final int COMMAND_ANSWER = 9;
 
   public static int encode(int command) {
     return EV3Command.encode(command, 0, 0, 0);

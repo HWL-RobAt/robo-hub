@@ -1,20 +1,28 @@
 package de.hu_berlin.informatik.humboldtquiz.robo;
 
-
 import de.hu_berlin.informatik.app.connection.ConnectionInfo;
 import de.hu_berlin.informatik.app.connection.SocketConnection;
 import de.hu_berlin.informatik.app.connection.protocol.EV3Command;
-import de.hu_berlin.informatik.ev3.ai.MoveControl;
-import de.hu_berlin.informatik.ev3.ai.MoveControlBraitenbergLine;
-import de.hu_berlin.informatik.ev3.ai.MoveControlRemote;
-import de.hu_berlin.informatik.ev3.sensorcontrol.*;
-import lejos.hardware.BrickFinder;
+import de.hu_berlin.informatik.ev3.ai.Braitenberg;
+import de.hu_berlin.informatik.ev3.control.motion.MotionControl;
+import de.hu_berlin.informatik.ev3.ai.BraitenbergLine;
+import de.hu_berlin.informatik.ev3.control.motion.MotionControlBraitenbergMultiSpeed;
+import de.hu_berlin.informatik.ev3.control.motion.MotionControlRemote;
+import de.hu_berlin.informatik.ev3.control.motor.DualMotorControl;
+import de.hu_berlin.informatik.ev3.control.motor.MotorControl;
+import de.hu_berlin.informatik.ev3.data.BlackBoard;
+import de.hu_berlin.informatik.ev3.sensor.color.ColorSensor;
+import de.hu_berlin.informatik.ev3.sensor.color.ColorSensorMulti;
+import de.hu_berlin.informatik.ev3.sensor.detector.LineDetector;
+import de.hu_berlin.informatik.ev3.sensor.detector.MarkerDetector;
+import de.hu_berlin.informatik.ev3.sensor.detector.MarkerDetectorColorList;
+import de.hu_berlin.informatik.ev3.sensor.remote.RemoteMotionSensor2D;
+import de.hu_berlin.informatik.ev3.sim.ColorSensorSim;
+import de.hu_berlin.informatik.ev3.sim.DualMotorControlSim;
+import de.hu_berlin.informatik.ev3.sim.Keys;
+import de.hu_berlin.informatik.ev3.sim.LCD;
 import lejos.hardware.Button;
-import lejos.hardware.Keys;
-import lejos.hardware.ev3.EV3;
-import lejos.hardware.lcd.TextLCD;
 import lejos.robotics.Color;
-import lejos.utility.Delay;
 
 import java.io.PrintWriter;
 
@@ -42,10 +50,11 @@ public class HuQuizRobo {
   public static void main(String[] args) {
 
     boolean running = false;
+    boolean simMode = false;
 
-    int defaultHighSpeed=300;
-    int defaultLowSpeed=200;
-    int defaultStartSpeed=defaultHighSpeed;
+    int defaultHighSpeed = 300;
+    int defaultLowSpeed = 200;
+    int defaultStartSpeed = defaultHighSpeed;
 
     int frequency = 50;
 
@@ -55,9 +64,8 @@ public class HuQuizRobo {
     int tour = ROBO_TOUR_ALEXANDER;
     String configfilePrefix = "/home/robo-hub/";
 
-    EV3 ev3 = (EV3) BrickFinder.getLocal();
-    TextLCD lcd = ev3.getTextLCD();
-    Keys keys = ev3.getKeys();
+    LCD lcd = new LCD(simMode);
+    Keys keys = new Keys(simMode);
 
     lcd.drawString("Alex: Up Indoor: Down", 1, 2);
 
@@ -94,6 +102,8 @@ public class HuQuizRobo {
                                  Color.BLACK, Color.GREEN,
                                  Color.RED};
 
+      markerColor = tour_markerColor;
+
       lineColor = Color.ORANGE;
 
       configfilePrefix = configfilePrefix + "test/";
@@ -103,33 +113,47 @@ public class HuQuizRobo {
 
     int roboMoveMode = ROBO_MODE_CTRL_LINE;
 
-    SensorDB sensorDB = new SensorDB();
+    BlackBoard blackBoard = new BlackBoard();
 
     String colorSensorPorts[] = {"S1", "S2"};
+    ColorSensor colSensorList[] = new ColorSensor[colorSensorPorts.length];
 
-    ColorSensorMulti colorSensors = new ColorSensorMulti(colorSensorPorts);
-    colorSensors.configureColorSensors(configfilePrefix + "color_clf" + colortabPost + ".properties");
+    for ( int i = 0; i < colSensorList.length; i++) {
+      if (simMode) colSensorList[i] = new ColorSensorSim(colorSensorPorts[i]);
+      else {
+        colSensorList[i] = new ColorSensor(colorSensorPorts[i]);
+        colSensorList[i].configureClassifier(configfilePrefix + "color_clf" + colortabPost + ".properties");
+      }
+    }
+
+    ColorSensorMulti colorSensors = new ColorSensorMulti();
 
     LineDetector lineDetector = new LineDetector(lineColor);
+    Braitenberg braitenberg = new BraitenbergLine();
 
-    //de.hu_berlin.informatik.ev3.sensorcontrol.MarkerDetector markerDetect = new de.hu_berlin.informatik.ev3.sensorcontrol.MarkerDetector(markerColor);
-    //de.hu_berlin.informatik.ev3.sensorcontrol.MarkerDetector markerDetect = new de.hu_berlin.informatik.ev3.sensorcontrol.MarkerDetectorWithMemory(markerColor);
     MarkerDetector markerDetect = new MarkerDetectorColorList(markerColor);
+
+    RemoteMotionSensor2D remoteSensor = new RemoteMotionSensor2D(null);
+
+    MotionControl motionCtrlBB = new MotionControlBraitenbergMultiSpeed();
+    MotionControl motionCtrlRemote = new MotionControlRemote();
+    MotionControl motionCtrl = null;
+
+
+    MotorControl roboMotorCtl = null;
+    if (simMode) roboMotorCtl = new DualMotorControlSim("MotorPort.A", "MotorPort.B");
+    else roboMotorCtl = new DualMotorControl("MotorPort.A", "MotorPort.B");
 
     PrintWriter debugRS = null;
     /*try {
       debugRS = new PrintWriter("/home/robo-hub/remote_sender.dbg");
-    } catch (IOException ioe) {
+      if (debugRS != null) {
+        remoteSensor.setDebugWriter(debugRS);
+        motionCtrlRemote.setDebugWriter(debugRS);
+      }
+    } catch (IOException ioe)  {
       throw new RuntimeException();
-    }
-    */
-
-    RemoteSensor remoteSensor = new RemoteSensor(null);
-    if (debugRS != null) remoteSensor.setDebugWriter(debugRS);
-
-    MoveControl moveCtrl = null;
-
-    DualMotorControl roboMotorCtl = new DualMotorControl("MotorPort.A", "MotorPort.B");
+    } */
 
     int mode = ROBO_MODE_LINE;
 
@@ -142,11 +166,11 @@ public class HuQuizRobo {
     sock.init();
 
     lcd.drawString("Wait for Client", 1, 2);
-    ev3.getAudio().setVolume(15);
-    ev3.getAudio().systemSound(0);
+    //ev3.getAudio().setVolume(15);
+    //ev3.getAudio().systemSound(0);
 
     sock.waitForClient();
-    ev3.getAudio().systemSound(1);
+    //ev3.getAudio().systemSound(1);
 
     lcd.clear(2);
 
@@ -164,7 +188,7 @@ public class HuQuizRobo {
           rxTxInt = sock.receiveInt();
           command = EV3Command.decode(rxTxInt, params);
         } else {
-          if (Button.ESCAPE.isDown()) {
+          if (keys.isButtonDown("Escape")) {
             command = EV3Command.COMMAND_DISCONNECT;
           } else {
             try {
@@ -176,24 +200,23 @@ public class HuQuizRobo {
       } while ((command != EV3Command.COMMAND_START) && (command != EV3Command.COMMAND_DISCONNECT));
 
       lcd.clear(2);
-      ev3.getAudio().systemSound(3);
+      //ev3.getAudio().systemSound(3);
 
       if (command == EV3Command.COMMAND_START) {
         roboMoveMode = params[0];
 
         lcd.drawString("Mode: " + roboMoveMode, 1, 1);
 
-        if (roboMoveMode == ROBO_MODE_CTRL_LINE) {
-          moveCtrl = new MoveControlBraitenbergLine();
-        } else {
-          moveCtrl = new MoveControlRemote();
+        switch (roboMoveMode) {
+          case ROBO_MODE_CTRL_LINE:
+            motionCtrl = motionCtrlBB;
+            break;
+          default:
+            motionCtrl = motionCtrlRemote;
         }
 
-        if (debugRS != null) moveCtrl.setDebugWriter(debugRS);
-
-        moveCtrl.setMaxSpeed(defaultStartSpeed);
-
-        if (remoteSensor != null) remoteSensor.setDataInputStream(sock);
+        motionCtrl.setMaxSpeed(defaultStartSpeed);
+        remoteSensor.setDataInputStream(sock);
 
         running = true;
       } else {
@@ -206,13 +229,20 @@ public class HuQuizRobo {
       }
 
       while (running) {
-        colorSensors.updateSensorDB(sensorDB);
-        markerDetect.updateSensorDB(sensorDB);
+        for ( int i = 0; i < colSensorList.length; i++) colSensorList[i].update(blackBoard);
 
-        lineDetector.updateSensorDB(sensorDB);
-        remoteSensor.updateSensorDB(sensorDB);
+        remoteSensor.update(blackBoard);
 
-        int colors[] = colorSensors.readLastSensorsValues();
+        colorSensors.update(blackBoard);
+        markerDetect.update(blackBoard);
+
+        lineDetector.update(blackBoard);
+        braitenberg.update(blackBoard);
+
+        motionCtrlRemote.update(blackBoard);
+        motionCtrlBB.update(blackBoard);
+
+        int colors[] = colorSensors.getSensorOutput();
         lcd.clear(5);
         lcd.drawString("Color: " + colors[0] + " / " + colors[1], 1, 5);
 
@@ -225,19 +255,23 @@ public class HuQuizRobo {
 
           roboMotorCtl.backward(10);
 
-          Delay.msDelay((long) (1000 / frequency));
+          try {
+            Thread.sleep((long)(1000 / frequency));
+          } catch (InterruptedException ie) {
+            throw new RuntimeException();
+          }
 
           roboMotorCtl.stop();
 
           if (markerCol == markerColor[markerColor.length-1]) {
-            ev3.getAudio().systemSound(3);
+            //ev3.getAudio().systemSound(3);
 
             rxTxInt = EV3Command.encode(EV3Command.COMMAND_STOP);
             sock.sendInt(rxTxInt);
 
             running = false;
           } else {
-            ev3.getAudio().systemSound(4);
+            //ev3.getAudio().systemSound(4);
             rxTxInt = EV3Command.encode(EV3Command.COMMAND_QUESTION);
             sock.sendInt(rxTxInt);
 
@@ -247,7 +281,7 @@ public class HuQuizRobo {
                 rxTxInt = sock.receiveInt();
                 command = EV3Command.decode(rxTxInt, params);
               } else {
-                if (Button.ESCAPE.isDown()) {
+                if (keys.isButtonDown("Escape")) {
                   command = EV3Command.COMMAND_STOP;
                 } else {
                   try {
@@ -260,8 +294,8 @@ public class HuQuizRobo {
 
             switch (command) {
               case EV3Command.COMMAND_ANSWER: {
-                if (params[0] == 1) moveCtrl.setMaxSpeed(defaultHighSpeed);
-                if (params[0] == 2) moveCtrl.setMaxSpeed(defaultLowSpeed);
+                if (params[0] == 1) motionCtrl.setMaxSpeed(defaultHighSpeed);
+                if (params[0] == 2) motionCtrl.setMaxSpeed(defaultLowSpeed);
                 break;
               }
               case EV3Command.COMMAND_STOP: {
@@ -272,8 +306,7 @@ public class HuQuizRobo {
           }
 
           lcd.clear(6);
-          moveCtrl.reset();
-          remoteSensor.clear();
+          motionCtrl.reset();
 
           if (running == false) break;
 
@@ -299,41 +332,28 @@ public class HuQuizRobo {
 
         if (running == false) break;
 
-        int moveCtrlInput[] = null;
+        int speed[] = motionCtrl.getSpeed();
 
-        if (roboMoveMode == ROBO_MODE_CTRL_LINE) {
-          moveCtrlInput = lineDetector.getSensorOutputs();
-        } else {
-          moveCtrlInput = remoteSensor.getSensorOutputs();
-        }
-
-        moveCtrl.updateSensorInputs(moveCtrlInput);
-        int speed[] = moveCtrl.getNextSpeed();
-
-        if ( debugRS != null ) debugRS.println("ToMotor:" + speed[0] + "," + speed[1]);
-
-        if ((speed[0] == 0) && (speed[1] == 0)) roboMotorCtl.setSpeed(1,1);
-        else                                    roboMotorCtl.setSpeed(speed[0], speed[1]);
+        roboMotorCtl.setSpeed(speed);
 
         lcd.clear(2);
         lcd.clear(3);
         lcd.clear(4);
-        lcd.drawString("Speed: " + speed[0] + " / " + speed[1], 1, 2);
-        if (moveCtrlInput.length > 1) {
-          lcd.drawString("Remote: " + moveCtrlInput[0] + " " + moveCtrlInput[1], 1, 3);
-        } else {
-          lcd.drawString("Line: " + moveCtrlInput[0] + "", 1, 3);
-        }
-        lcd.drawString("Mode: " + mode + "", 1, 4);
-
         lcd.clear(7);
+
+        lcd.drawString("Speed: " + speed[0] + " / " + speed[1], 1, 2);
+        lcd.drawString("Remote: " + motionCtrlRemote.getSpeed()[0] + " " + motionCtrlRemote.getSpeed()[1], 1, 3);
+        lcd.drawString("Line: " + lineDetector.getSensorOutput()[0] + "", 1, 3);
+        lcd.drawString("Mode: " + mode + "", 1, 4);
         lcd.drawString("Marker: " + markerDetect.getNextColor() + "", 1, 7);
 
-        Delay.msDelay((long) (1000 / frequency));
+        try {
+          Thread.sleep((long)(1000 / frequency));
+        } catch (InterruptedException ie) {
+          throw new RuntimeException();
+        }
 
-        if ((speed[0] == 0) && (speed[1] == 0)) roboMotorCtl.stop();
-
-        running = running && Button.ESCAPE.isUp();
+        running = running && keys.isButtonUp("Escape") && (!sock.isClosed());
       }
 
       roboMotorCtl.stop();
@@ -341,7 +361,7 @@ public class HuQuizRobo {
 
     } while (!sock.isClosed());
 
-    colorSensors.stop();
+    for ( int i = 0; i < colSensorList.length; i++) colSensorList[i].close();
     if ( debugRS != null ) debugRS.close();
   }
 

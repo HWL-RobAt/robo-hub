@@ -17,22 +17,25 @@ public class AppToRoboCommunicationControl {
 
     int moveCommand = -1;
 
+    boolean closeIt;
+
     public AppToRoboCommunicationControl(SocketConnection ap2roboConn, RoboCtrlActivity appCompatActivity) {
         this.ap2roboConn = ap2roboConn;
         this.appCompatActivity = appCompatActivity;
         miscCommands = new ArrayList<Integer>();
+        closeIt = false;
     }
 
     public void sendCommand(int command, int p0, int p1, int p2) {
-        nextCommendSetGet(false, command, p0, p1, p2);
+        nextCommandSetGet(false, command, p0, p1, p2);
     }
 
     public void sendCommand(int command) {
-        nextCommendSetGet(false, command, 0, 0, 0);
+        nextCommandSetGet(false, command, 0, 0, 0);
     }
 
     public int getNextSendCommand() {
-        return nextCommendSetGet(true , 0, 0, 0, 0);
+        return nextCommandSetGet(true, 0, 0, 0, 0);
     }
 
     public void reset() {
@@ -40,7 +43,7 @@ public class AppToRoboCommunicationControl {
         miscCommands.clear();
     }
 
-    synchronized private int nextCommendSetGet(boolean get, int command, int p0, int p1, int p2) {
+    synchronized private int nextCommandSetGet(boolean get, int command, int p0, int p1, int p2) {
         int ret = -1;
         if ( get ) {
             if ( miscCommands.size() > 0 ) {
@@ -63,5 +66,14 @@ public class AppToRoboCommunicationControl {
 
         return ret;
     }
+
+    public void closeConnection() {
+        closeIt = true;
+    }
+
+    public boolean isClosed() {
+        return closeIt && ap2roboConn.isClosed();
+    }
+
 
 }
