@@ -1,6 +1,7 @@
 package de.hu_berlin.informatik.humboldtquiz.android;
 
 import android.content.pm.ActivityInfo;
+import android.graphics.Point;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -10,6 +11,7 @@ import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -34,9 +36,10 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
     public static final int CONNECTION_MODE_CONNECTED = 1;
 
     public static final int ROBOCTRL_MODE_GYRO = 0;
-    public static final int ROBOCTRL_MODE_TOUCH = 1;
-    public static final int ROBOCTRL_MODE_LINE = 2;
-    public static final int ROBOCTRL_MODE_DISTANCE = 3;
+    public static final int ROBOCTRL_MODE_GYRO2 = 1;
+    public static final int ROBOCTRL_MODE_TOUCH = 2;
+    public static final int ROBOCTRL_MODE_LINE = 3;
+    public static final int ROBOCTRL_MODE_DISTANCE = 4;
 
     QuizViewManager qvm = null;
 
@@ -57,6 +60,14 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
 
     //the Sensor Manager
     private SensorManager sensorManager;
+    private Sensor sensorGravity;
+    private Sensor sensorCompass;
+    private Sensor sensorAccel;
+
+    float[] mGravity;
+    float[] mGeomagnetic;
+    float nullAzimut = -10;
+    float nullPitch = -10;
 
     TextView tvInfo = null;
 
@@ -76,6 +87,10 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
 
         //get a hook to the sensor service
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+        sensorGravity = sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
+        sensorCompass = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        sensorAccel = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+
     }
 
     public void onClickConnect(View view) {
@@ -111,11 +126,15 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
             roboctrlMode = spinner_roboctrl.getSelectedItemPosition();
 
             System.out.println("Mode: " + roboctrlMode);
-            app2roboComCtrl.sendCommand(EV3Command.COMMAND_START, roboctrlMode, 0, 0);
+            if ( roboctrlMode >= ROBOCTRL_MODE_GYRO2) app2roboComCtrl.sendCommand(EV3Command.COMMAND_START, roboctrlMode-1, 0, 0);
+            else app2roboComCtrl.sendCommand(EV3Command.COMMAND_START, roboctrlMode, 0, 0);
 
             startChronometer(false);
 
             quizMode = QUIZ_MODE_RUNNING;
+
+            nullAzimut = -10;
+            nullPitch = -10;
 
         } else {
             app2roboComCtrl.sendCommand(EV3Command.COMMAND_STOP);
@@ -219,6 +238,15 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
         }
 
         final ImageView imageView = (ImageView) findViewById(R.id.imageView_roboctrl_touch);
+        Display display = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        int width = size.x;
+        int height = size.y;
+
+        System.out.println("H: " + height + " W: " + width);
+        imageView.getLayoutParams().height = (width-50);
+        imageView.getLayoutParams().width = (width-50);
 
         if ((roboctrlMode == ROBOCTRL_MODE_TOUCH) && (quizMode == QUIZ_MODE_RUNNING)) {
 
@@ -231,9 +259,9 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
                     int x = Math.max(Math.min(Math.round(100 * ((event.getX() /*- viewPos[0]*/) / viewSize[0])), 100), 0);
                     int y = Math.max(Math.min(Math.round(100 * ((event.getY() /*- viewPos[1]*/) / viewSize[1])), 100), 0);
 
-                    Log.i("Touch", String.valueOf(action));
-                    Log.i("x: ", String.valueOf(x));
-                    Log.i("y: ", String.valueOf(y));
+                    Log.i("Touch: ", "Action " + String.valueOf(action));
+                    Log.i("Touch: ", "x = " + String.valueOf(x));
+                    Log.i("Touch: ", "y = " + String.valueOf(y));
 
                     if (connectionMode == CONNECTION_MODE_CONNECTED) {
                         if (action == 2) app2roboComCtrl.sendCommand(EV3Command.COMMAND_MOVE, x, y, 1);
@@ -270,13 +298,13 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
         viewSize[0] = imageView.getWidth();
         viewSize[1] = imageView.getHeight();
 
-        System.out.println("S: " + imageView.getHeight() + " / " + imageView.getWidth());
-        System.out.println("P: " + viewPos[0] + " / " + viewPos[1]);
+        Log.i("ImageView", "S: " + imageView.getHeight() + " / " + imageView.getWidth());
+        Log.i("ImageView", "P: " + viewPos[0] + " / " + viewPos[1]);
     }
 
     //Go back from question to RoboCtrlView
     public void onClickBack(View view) {
-        System.out.println("back");
+        Log.i("ClickAction", "back");
 
         app2roboComCtrl.reset(); //delete old moves
         app2roboComCtrl.sendCommand(EV3Command.COMMAND_ANSWER,qvm.lastAnswerCorrect?1:2,0,0);
@@ -309,21 +337,26 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
     protected void onResume()
     {
         super.onResume();
-        System.out.println("On Resume");
+        Log.i("GUI", "onResume");
         /*register the sensor listener to listen to the gyroscope sensor, use the
         callbacks defined in this class, and gather the sensor information as quick
         as possible*/
-        System.out.println("No Gravity: " + sensorManager.getSensorList(Sensor.TYPE_GRAVITY).size());
-        sensorManager.registerListener(this, sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY), SensorManager.SENSOR_DELAY_UI);
+        Log.i("Sensor:", "No Gravity: " + sensorManager.getSensorList(Sensor.TYPE_GRAVITY).size());
+        Log.i("Sensor:", "No Compass: " + sensorManager.getSensorList(Sensor.TYPE_MAGNETIC_FIELD).size());
+        Log.i("Sensor:", "No Acc: " + sensorManager.getSensorList(Sensor.TYPE_ACCELEROMETER).size());
+
+        sensorManager.registerListener(this, sensorGravity, SensorManager.SENSOR_DELAY_UI);
+        sensorManager.registerListener(this, sensorCompass, SensorManager.SENSOR_DELAY_UI);
+        sensorManager.registerListener(this, sensorAccel, SensorManager.SENSOR_DELAY_UI);
     }
 
   //When this Activity isn't visible anymore
     @Override
     protected void onStop()
     {
+        Log.i("GUI", "On Stop");
         //unregister the sensor listener
         sensorManager.unregisterListener(this);
-        System.out.println("On Stop");
         super.onStop();
     }
 
@@ -331,32 +364,67 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
     public void onAccuracyChanged(Sensor arg0, int arg1) { /* Do nothing.*/ }
 
     @Override
-    public void onSensorChanged(SensorEvent event)
-    {
-        //if sensor is unreliable, return void
-        if (event.accuracy == SensorManager.SENSOR_STATUS_UNRELIABLE)
-        {
-            //System.out.println("SensorManager.SENSOR_STATUS_UNRELIABLE");
-            //return;
+    public void onSensorChanged(SensorEvent event) {
+
+        if (quizMode == QUIZ_MODE_RUNNING) {
+            //if sensor is unreliable, return void
+            if (event.accuracy == SensorManager.SENSOR_STATUS_UNRELIABLE) {
+                //System.out.println("SensorManager.SENSOR_STATUS_UNRELIABLE");
+                //return;
+            }
+
+            if (roboctrlMode == ROBOCTRL_MODE_GYRO) {
+                //System.out.println("SenChanged: " + event.sensor.getType());
+                if (event.sensor.getType() == Sensor.TYPE_GRAVITY) {
+                    //y : rechts -  links +
+                    // z: vorn + hinten -
+                    int x = (int) Math.max(Math.min(50 + Math.round(-12.5 * event.values[1]), 100), 0);
+                    int y = (int) Math.max(Math.min(50 + Math.round(-12.5 * event.values[0]), 100), 0);
+
+                    app2roboComCtrl.sendCommand(EV3Command.COMMAND_MOVE, x, y, 1);
+                }
+            }
+
+            if (roboctrlMode == ROBOCTRL_MODE_GYRO2) {
+
+                if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
+                    mGeomagnetic = event.values;
+
+                    if (mGravity != null && mGeomagnetic != null) {
+                        float R[] = new float[9];
+                        float I[] = new float[9];
+                        boolean success = SensorManager.getRotationMatrix(R, I, mGravity, mGeomagnetic);
+                        if (success) {
+                            float orientation[] = new float[3];
+                            SensorManager.getOrientation(R, orientation);
+                            float azimut = orientation[0]; // orientation contains: azimut: Compass
+                            float pitch = orientation[1];  // gas
+                            float roll = orientation[2];   // rotation
+
+                            if (nullAzimut == -10) {
+                                nullAzimut = azimut;
+                                nullPitch = pitch;
+                            } else {
+                                float diffAzimut = nullAzimut - azimut;
+                                if (diffAzimut > Math.PI) diffAzimut -= Math.PI;
+                                if (diffAzimut < -Math.PI) diffAzimut += 2*Math.PI;
+
+                                float diffPitch = nullPitch - pitch;
+
+                                int x = (int) Math.max(Math.min(50 + Math.round(-100 * diffAzimut), 100), 0);
+                                int y = (int) Math.max(Math.min(50 + Math.round(100 * diffPitch), 100), 0);
+
+                                app2roboComCtrl.sendCommand(EV3Command.COMMAND_MOVE, x, y, 1);
+                                //System.out.println("Ori: " + azimut + " , " + nullAzimut + " , " + diffAzimut);
+                                //System.out.println("X: " + x + " Y:" + y);
+                            }
+
+                        }
+                    }
+                }
+
+                if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) mGravity = event.values;
+            }
         }
-
-        //else it will output the Roll, Pitch and Yawn values
-        //tvInfo.setText("Orientation X (Roll) :" + Float.toString(event.values[2]) + "\n" +
-        //           "Orientation Y (Pitch) :" + Float.toString(event.values[1]) + "\n" +
-        //           "Orientation Z (Yaw) :"+ Float.toString(event.values[0]));
-
-        if ((roboctrlMode == ROBOCTRL_MODE_GYRO) && (quizMode == QUIZ_MODE_RUNNING)) {
-            //y : rechts -  links +
-            // z: vorn + hinten -
-            int x = (int) Math.max(Math.min(50 + Math.round(-12.5 * event.values[1]), 100), 0);
-            int y = (int) Math.max(Math.min(50 + Math.round(-12.5 * event.values[0]), 100), 0);
-
-            //else it will output the Roll, Pitch and Yawn values
-            //tvInfo.setText("Orientation X : " + Integer.toString(x) + "\n" +
-            //               "Orientation Y : " + Integer.toString(y));
-
-            app2roboComCtrl.sendCommand(EV3Command.COMMAND_MOVE, x, y, 1);
-        }
-
     }
 }

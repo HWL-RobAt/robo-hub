@@ -2,6 +2,7 @@
 <resources>
     <string-array name="roboctrl_items">
         <item>Gyro</item>
+        <item>Compass</item>
         <item>Touch</item>
         <item>Line</item>
         <item>Distance</item>

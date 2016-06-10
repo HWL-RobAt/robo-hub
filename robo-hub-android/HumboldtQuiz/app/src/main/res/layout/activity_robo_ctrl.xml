@@ -16,8 +16,8 @@
         android:layout_height="match_parent"
         android:id="@+id/linearLayout"
         android:weightSum="1"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true">
+        android:layout_alignParentRight="false"
+        android:layout_alignParentEnd="false">
 
         <LinearLayout
             android:orientation="horizontal"
@@ -29,18 +29,30 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/editText_addr"
-                android:layout_weight="0.40"
+                android:layout_weight="0.60"
                 android:enabled="true"
                 android:editable="true"
-                android:text="127.0.0.1" />
+                android:text="127.0.0.1"
+                android:textSize="12dp" />
 
             <Button
                 android:layout_width="wrap_content"
-                android:layout_height="38dp"
+                android:layout_height="wrap_content"
                 android:text="Connect"
                 android:id="@+id/button_connect"
                 android:enabled="true"
                 android:onClick="onClickConnect"
+                android:layout_weight="0.30"
+                android:textSize="12dp" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Start"
+                android:id="@+id/button_start"
+                android:enabled="true"
+                android:onClick="onClickStart"
+                android:textSize="12dp"
                 android:layout_weight="0.10" />
         </LinearLayout>
 
@@ -56,45 +68,35 @@
                 android:layout_height="38dp"
                 android:id="@+id/spinner_level"
                 android:spinnerMode="dropdown"
-                android:layout_weight="0.10" />
+                android:layout_weight="0.15" />
 
             <Spinner
                 android:layout_width="86dp"
                 android:layout_height="33dp"
                 android:id="@+id/spinner_roboctrl"
                 android:spinnerMode="dropdown"
-                android:layout_weight="0.10" />
+                android:layout_weight="0.15" />
 
             <Chronometer
                 android:layout_width="48dp"
-                android:layout_height="50dp"
+                android:layout_height="40dp"
                 android:id="@+id/chronometer"
                 android:layout_gravity="bottom|center"
-                android:layout_weight="0.60"
-                android:textSize="24dp"
+                android:layout_weight="0.70"
+                android:textSize="14dp"
                 android:textAlignment="center"
-                android:gravity="center_horizontal" />
-
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="63dp"
-                android:text="Start"
-                android:id="@+id/button_start"
-                android:enabled="true"
-                android:onClick="onClickStart"
-                android:layout_weight="0.20"
-                android:textSize="24dp" />
+                android:gravity="center_vertical|center_horizontal" />
 
         </LinearLayout>
 
         <ImageView
             android:layout_width="match_parent"
-            android:layout_height="700dp"
+            android:layout_height="fill_parent"
             android:id="@+id/imageView_roboctrl_touch"
             android:layout_centerVertical="true"
             android:src="#31b7fa"
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="20dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
             android:layout_gravity="center_horizontal" />
 
         <TextView
