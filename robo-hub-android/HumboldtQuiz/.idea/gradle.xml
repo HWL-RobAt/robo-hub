@@ -10,7 +10,7 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
-            <option value="$PROJECT_DIR$/connector" />
+            <option value="$PROJECT_DIR$/connection" />
             <option value="$PROJECT_DIR$/quizlogic" />
           </set>
         </option>

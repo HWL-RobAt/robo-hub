@@ -2,10 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/HumboldtQuiz.iml" filepath="$PROJECT_DIR$/HumboldtQuiz.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/connection/connection.iml" filepath="$PROJECT_DIR$/connection/connection.iml" />
       <module fileurl="file://$PROJECT_DIR$/quizlogic/quizlogic.iml" filepath="$PROJECT_DIR$/quizlogic/quizlogic.iml" />
+      <module fileurl="file://$PROJECT_DIR$/robo-hub-common.iml" filepath="$PROJECT_DIR$/robo-hub-common.iml" />
     </modules>
   </component>
 </project>
