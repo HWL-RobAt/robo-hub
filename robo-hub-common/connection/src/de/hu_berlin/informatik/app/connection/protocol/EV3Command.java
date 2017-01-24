@@ -14,6 +14,13 @@ public class EV3Command {
   public static final int COMMAND_SENSOR = 7;
   public static final int COMMAND_QUESTION = 8;
   public static final int COMMAND_ANSWER = 9;
+  public static final int COMMAND_REMOTE_ACTION = 10;
+
+  public static final int SUBCOMMAND_REMOTE_ACTION_NONE = 0;
+  public static final int SUBCOMMAND_REMOTE_ACTION_ROTATE = 1;
+  public static final int SUBCOMMAND_REMOTE_ACTION_STOP = 2;
+  public static final int SUBCOMMAND_REMOTE_ACTION_SWITCH_CTRL = 3;
+
 
   public static int encode(int command) {
     return EV3Command.encode(command, 0, 0, 0);
