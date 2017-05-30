@@ -7,6 +7,7 @@ import de.hu_berlin.informatik.ev3.ai.Braitenberg;
 import de.hu_berlin.informatik.ev3.ai.BraitenbergLine;
 import de.hu_berlin.informatik.ev3.control.motion.MotionControl;
 import de.hu_berlin.informatik.ev3.control.motion.MotionControlBraitenbergMultiSpeed;
+import de.hu_berlin.informatik.ev3.control.motion.MotionControlHighway;
 import de.hu_berlin.informatik.ev3.control.motion.MotionControlRemote;
 import de.hu_berlin.informatik.ev3.control.motor.DualMotorControl;
 import de.hu_berlin.informatik.ev3.control.motor.MotorControl;
@@ -16,6 +17,7 @@ import de.hu_berlin.informatik.ev3.sensor.color.ColorSensorMulti;
 import de.hu_berlin.informatik.ev3.sensor.detector.LineDetector;
 import de.hu_berlin.informatik.ev3.sensor.detector.MarkerDetector;
 import de.hu_berlin.informatik.ev3.sensor.detector.MarkerDetectorColorList;
+import de.hu_berlin.informatik.ev3.sensor.detector.TwoLinesDetector;
 import de.hu_berlin.informatik.ev3.sensor.remote.RemoteMotionSensor2D;
 import de.hu_berlin.informatik.ev3.sim.ColorSensorSim;
 import de.hu_berlin.informatik.ev3.sim.DualMotorControlSim;
@@ -24,7 +26,13 @@ import de.hu_berlin.informatik.ev3.sim.LCD;
 import lejos.hardware.Button;
 import lejos.robotics.Color;
 
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Properties;
+
+import static lejos.hardware.ev3.LocalEV3.ev3;
 
 /**
  * Created by robert on 18.06.16.
@@ -36,78 +44,23 @@ public class RoboKart {
 
   public static final int ROBO_MODE_CTRL_GYRO = 0;
   public static final int ROBO_MODE_CTRL_TOUCH = 1;
-  public static final int ROBO_MODE_CTRL_LINE = 2;
-  public static final int ROBO_MODE_CTRL_DIST = 3;
-
-  public static final int ROBO_TOUR_ALEXANDER = 0;
-  public static final int ROBO_TOUR_TEST = 1;
-
 
   public static void main(String[] args) {
 
     boolean running = false;
-    boolean simMode = false;
 
-    int defaultHighSpeed = 300;
-    int defaultLowSpeed = 200;
-    int defaultStartSpeed = defaultHighSpeed;
-
-    int frequency = 50;
-
-    int markerColor[] = null;
-    int lineColor = Color.NONE;
-
-    int tour = ROBO_TOUR_ALEXANDER;
     String configfilePrefix = "/home/robo-hub/";
 
-    LCD lcd = new LCD(simMode);
-    Keys keys = new Keys(simMode);
+    System.out.println("Filename: " + args[1]);
 
-    lcd.drawString("Alex: Up Indoor: Down", 1, 2);
+    RoboKartConfig rkConfig = new RoboKartConfig(args[1]);
 
-    int pressedKey = keys.waitForAnyPress();
-
-    if ( pressedKey == Button.ID_DOWN ) tour = ROBO_TOUR_TEST;
-
-    lcd.clear(2);
-    lcd.drawString("ColorTab: U/D/L/R", 1, 2);
-
-    pressedKey = keys.waitForAnyPress();
-
-    String colortabPost = "";
-
-    if ( pressedKey == Button.ID_DOWN ) colortabPost = "_1";
-    if ( pressedKey == Button.ID_LEFT ) colortabPost = "_2";
-    if ( pressedKey == Button.ID_RIGHT ) colortabPost = "_3";
-
-    if ( tour == ROBO_TOUR_ALEXANDER ) {
-
-      int tour_markerColor[] = { Color.RED, Color.GREEN,
-                                 Color.RED, Color.GREEN,
-                                 Color.RED, Color.BLACK };
-
-      markerColor = tour_markerColor;
-
-      lineColor = Color.WHITE;
-
-      configfilePrefix = configfilePrefix + "alexander/";
-
-    } else {
-      int tour_markerColor[] = { Color.BLACK, Color.GREEN,
-                                 Color.BLACK, Color.GREEN,
-                                 Color.BLACK, Color.GREEN,
-                                 Color.RED};
-
-      markerColor = tour_markerColor;
-
-      lineColor = Color.ORANGE;
-
-      configfilePrefix = configfilePrefix + "test/";
-    }
+    LCD lcd = new LCD(rkConfig.simMode);
+    Keys keys = new Keys(rkConfig.simMode);
 
     lcd.clear(2);
 
-    int roboMoveMode = ROBO_MODE_CTRL_LINE;
+    int roboMoveMode = ROBO_MODE_CTRL_GYRO;
 
     BlackBoard blackBoard = new BlackBoard();
 
@@ -115,29 +68,28 @@ public class RoboKart {
     ColorSensor colSensorList[] = new ColorSensor[colorSensorPorts.length];
 
     for ( int i = 0; i < colSensorList.length; i++) {
-      if (simMode) colSensorList[i] = new ColorSensorSim(colorSensorPorts[i]);
+      if (rkConfig.simMode) colSensorList[i] = new ColorSensorSim(colorSensorPorts[i]);
       else {
         colSensorList[i] = new ColorSensor(colorSensorPorts[i]);
-        colSensorList[i].configureClassifier(configfilePrefix + "color_clf" + colortabPost + ".properties");
+        colSensorList[i].configureClassifier(configfilePrefix + "color_clf" + rkConfig.colorClfConfig + ".properties");
       }
     }
 
     ColorSensorMulti colorSensors = new ColorSensorMulti();
 
-    LineDetector lineDetector = new LineDetector(lineColor);
+    LineDetector lineDetector = new TwoLinesDetector(rkConfig.lineColorRight, rkConfig.lineColorLeft);
     Braitenberg braitenberg = new BraitenbergLine();
 
-    MarkerDetector markerDetect = new MarkerDetectorColorList(markerColor);
+    MarkerDetector markerDetect = new MarkerDetectorColorList(rkConfig.markerColor);
 
     RemoteMotionSensor2D remoteSensor = new RemoteMotionSensor2D(null);
 
-    MotionControl motionCtrlBB = new MotionControlBraitenbergMultiSpeed();
     MotionControl motionCtrlRemote = new MotionControlRemote();
+    MotionControlHighway motionCtrlHighway = new MotionControlHighway(MotionControlHighway.HighwayMode.TWO_LINE_BORDER);
     MotionControl motionCtrl = null;
 
-
     MotorControl roboMotorCtl = null;
-    if (simMode) roboMotorCtl = new DualMotorControlSim("MotorPort.A", "MotorPort.B");
+    if (rkConfig.simMode) roboMotorCtl = new DualMotorControlSim("MotorPort.A", "MotorPort.B");
     else roboMotorCtl = new DualMotorControl("MotorPort.A", "MotorPort.B");
 
     PrintWriter debugRS = null;
@@ -176,7 +128,7 @@ public class RoboKart {
 
     do {
 
-      lcd.drawString("Ready for next Quiz", 1, 2);
+      lcd.drawString("Ready for next race!", 1, 2);
 
       do {
         command = EV3Command.COMMAND_NONE;
@@ -203,15 +155,9 @@ public class RoboKart {
 
         lcd.drawString("Mode: " + roboMoveMode, 1, 1);
 
-        switch (roboMoveMode) {
-          case ROBO_MODE_CTRL_LINE:
-            motionCtrl = motionCtrlBB;
-            break;
-          default:
-            motionCtrl = motionCtrlRemote;
-        }
+        motionCtrl = motionCtrlRemote;
 
-        motionCtrl.setMaxSpeed(defaultStartSpeed);
+        motionCtrl.setMaxSpeed(rkConfig.defaultStartSpeed);
         remoteSensor.setDataInputStream(sock);
 
         running = true;
@@ -236,11 +182,11 @@ public class RoboKart {
         braitenberg.update(blackBoard);
 
         motionCtrlRemote.update(blackBoard);
-        motionCtrlBB.update(blackBoard);
+        motionCtrlHighway.update(blackBoard);
 
         int colors[] = colorSensors.getSensorOutput();
         lcd.clear(5);
-        lcd.drawString("Color: " + colors[0] + " / " + colors[1], 1, 5);
+        lcd.drawString("Color: " + colors[0], 1, 5);
 
         if ((mode == ROBO_MODE_LINE) && markerDetect.hasMarkerDetected()) {
           mode = ROBO_MODE_MARKER;
@@ -249,62 +195,16 @@ public class RoboKart {
           lcd.clear(6);
           lcd.drawString("Marker: " + markerCol + "", 1, 6);
 
-          roboMotorCtl.backward(10);
+          ev3.getAudio().systemSound(3);
 
-          try {
-            Thread.sleep((long)(1000 / frequency));
-          } catch (InterruptedException ie) {
-            throw new RuntimeException();
-          }
-
-          roboMotorCtl.stop();
-
-          if (markerCol == markerColor[markerColor.length-1]) {
-            //ev3.getAudio().systemSound(3);
-
+          if (markerCol == rkConfig.markerColor[rkConfig.markerColor.length-1]) {
             rxTxInt = EV3Command.encode(EV3Command.COMMAND_STOP);
             sock.sendInt(rxTxInt);
 
             running = false;
-          } else {
-            //ev3.getAudio().systemSound(4);
-            rxTxInt = EV3Command.encode(EV3Command.COMMAND_QUESTION);
-            sock.sendInt(rxTxInt);
-
-            do {
-              command = EV3Command.COMMAND_NONE;
-              if (sock.rxAvailable()) {
-                rxTxInt = sock.receiveInt();
-                command = EV3Command.decode(rxTxInt, params);
-              } else {
-                if (keys.isButtonDown("Escape")) {
-                  command = EV3Command.COMMAND_STOP;
-                } else {
-                  try {
-                    Thread.sleep(5);
-                  } catch (InterruptedException ie) {
-                  }
-                }
-              }
-            } while ((command != EV3Command.COMMAND_ANSWER) && (command != EV3Command.COMMAND_STOP));
-
-            switch (command) {
-              case EV3Command.COMMAND_ANSWER: {
-                if (params[0] == 1) motionCtrl.setMaxSpeed(defaultHighSpeed);
-                if (params[0] == 2) motionCtrl.setMaxSpeed(defaultLowSpeed);
-                break;
-              }
-              case EV3Command.COMMAND_STOP: {
-                running = false;
-                break;
-              }
-            }
           }
 
           lcd.clear(6);
-          motionCtrl.reset();
-
-          if (running == false) break;
 
         } else {
           if (!markerDetect.hasMarkerDetected()) {
@@ -344,7 +244,7 @@ public class RoboKart {
         lcd.drawString("Marker: " + markerDetect.getNextColor() + "", 1, 7);
 
         try {
-          Thread.sleep((long)(1000 / frequency));
+          Thread.sleep((long)(1000 / rkConfig.frequency));
         } catch (InterruptedException ie) {
           throw new RuntimeException();
         }
