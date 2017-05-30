@@ -50,7 +50,7 @@ public class HuQuizRobo {
   public static void main(String[] args) {
 
     boolean running = false;
-    boolean simMode = false;
+    boolean simMode = true;
 
     int defaultHighSpeed = 300;
     int defaultLowSpeed = 200;
@@ -69,14 +69,14 @@ public class HuQuizRobo {
 
     lcd.drawString("Alex: Up Indoor: Down", 1, 2);
 
-    int pressedKey = keys.waitForAnyPress();
+    int pressedKey = simMode?Button.ID_DOWN:keys.waitForAnyPress();
 
     if ( pressedKey == Button.ID_DOWN ) tour = ROBO_TOUR_TEST;
 
     lcd.clear(2);
     lcd.drawString("ColorTab: U/D/L/R", 1, 2);
 
-    pressedKey = keys.waitForAnyPress();
+    pressedKey = simMode?Button.ID_DOWN:keys.waitForAnyPress();
 
     String colortabPost = "";
 
@@ -222,6 +222,7 @@ public class HuQuizRobo {
       } else {
         if (command == EV3Command.COMMAND_DISCONNECT) {
           running = false;
+          sock.reset();
           sock.close();
         } else {
           running = false;
