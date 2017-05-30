@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">RoboShadowFunction</string>
+    <string name="ctrl_settings">Controller</string>
+    <string name="connection_settings">Connection</string>
+    <string name="about">About</string>
+    <string name="showconnectionstate">show connection state</string>
+</resources>

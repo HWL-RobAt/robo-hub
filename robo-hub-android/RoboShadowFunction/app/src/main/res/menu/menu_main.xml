@@ -1,0 +1,22 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="de.hu_berlin.informatik.roboshadowfunction.MainActivity">
+
+    <item android:id="@+id/action_settings"
+          android:title="@string/ctrl_settings"
+          android:orderInCategory="100"
+          app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/action_connection"
+        android:title="@string/connection_settings"
+        android:orderInCategory="100"
+        app:showAsAction="never"/>
+
+    <item android:id="@+id/action_about"
+        android:title="@string/about"
+        android:orderInCategory="100"
+        app:showAsAction="never"/>
+
+</menu>
