@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">HumboldtQuiz</string>
+    <string name="control">Game</string>
+    <string name="ctrl_settings">Controller</string>
+    <string name="connection_settings">Connection</string>
+    <string name="about">About</string>
+    <string name="quit">Quit</string>
+    <string name="defaultIP">127.0.0.1</string>
+    <string name="defaultPort">3000</string>
+    <string name="showconnectionstate">Show connection state</string>
+    <string name="level">Level</string>
+    <string name="roboctrl">Controller</string>
 </resources>

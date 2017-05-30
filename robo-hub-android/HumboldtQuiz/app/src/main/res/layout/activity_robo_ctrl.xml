@@ -1,122 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/activity_robo_ctrl"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context=".android.RoboCtrlActivity">
-
+    tools:context="de.hu_berlin.informatik.humboldtquiz.android.RoboCtrlActivity"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
     <LinearLayout
-        android:orientation="vertical"
+        android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/linearLayout"
-        android:weightSum="1"
-        android:layout_alignParentRight="false"
-        android:layout_alignParentEnd="false">
-
-        <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:weightSum="1">
-
-            <EditText
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/editText_addr"
-                android:layout_weight="0.60"
-                android:enabled="true"
-                android:editable="true"
-                android:text="127.0.0.1"
-                android:textSize="12dp" />
-
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Connect"
-                android:id="@+id/button_connect"
-                android:enabled="true"
-                android:onClick="onClickConnect"
-                android:layout_weight="0.30"
-                android:textSize="12dp" />
-
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Start"
-                android:id="@+id/button_start"
-                android:enabled="true"
-                android:onClick="onClickStart"
-                android:textSize="12dp"
-                android:layout_weight="0.10" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:weightSum="1">
+        android:layout_height="60dp"
+        android:weightSum="1">
 
 
-            <Spinner
-                android:layout_width="93dp"
-                android:layout_height="38dp"
-                android:id="@+id/spinner_level"
-                android:spinnerMode="dropdown"
-                android:layout_weight="0.15" />
-
-            <Spinner
-                android:layout_width="86dp"
-                android:layout_height="33dp"
-                android:id="@+id/spinner_roboctrl"
-                android:spinnerMode="dropdown"
-                android:layout_weight="0.15" />
-
-            <Chronometer
-                android:layout_width="48dp"
-                android:layout_height="40dp"
-                android:id="@+id/chronometer"
-                android:layout_gravity="bottom|center"
-                android:layout_weight="0.70"
-                android:textSize="14dp"
-                android:textAlignment="center"
-                android:gravity="center_vertical|center_horizontal" />
-
-        </LinearLayout>
-
-        <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="fill_parent"
-            android:id="@+id/imageView_roboctrl_touch"
-            android:layout_centerVertical="true"
-            android:src="#31b7fa"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="10dp"
-            android:layout_gravity="center_horizontal" />
-
-        <TextView
-            android:layout_width="587dp"
-            android:layout_height="123dp"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:id="@+id/textView_info"
-            android:textSize="30dp"
-            android:gravity="top|left" />
-
-        <Button
-            style="?android:attr/buttonStyleSmall"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Fragen"
-            android:id="@+id/question_button"
-            android:layout_gravity="center_horizontal"
-            android:onClick="onClickQuestion"
-            android:visibility="invisible" />
+        <Chronometer
+            android:layout_width="48dp"
+            android:layout_height="61dp"
+            android:id="@+id/chronometer"
+            android:layout_gravity="bottom|center"
+            android:textSize="14dp"
+            android:textAlignment="center"
+            android:gravity="center_vertical|center_horizontal"
+            android:layout_alignParentTop="true"
+            android:layout_toStartOf="@+id/button_start"
+            android:layout_weight="0.91" />
 
     </LinearLayout>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Start"
+        android:id="@+id/button_start"
+        android:enabled="true"
+        android:onClick="onClickStart"
+        android:textSize="12dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_weight="0.09"
+        android:textAlignment="center" />
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:id="@+id/imageView_roboctrl_touch"
+        android:src="#31b7fa"
+        android:layout_gravity="center_horizontal"
+        android:layout_weight="0.10"
+        android:layout_height="200dp"
+        android:layout_centerVertical="true"
+        android:layout_alignParentStart="true" />
+
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Fragen"
+        android:id="@+id/question_button"
+        android:layout_gravity="center_horizontal"
+        android:onClick="onClickQuestion"
+        android:visibility="visible"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true" />
 
 </RelativeLayout>

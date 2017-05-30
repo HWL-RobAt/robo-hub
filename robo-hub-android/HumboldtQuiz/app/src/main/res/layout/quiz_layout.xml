@@ -1,8 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_quiz"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:weightSum="1">
+    android:orientation="vertical"
+    android:weightSum="1"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context="de.hu_berlin.informatik.humboldtquiz.android.RoboCtrlActivity"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
     <EditText
         android:layout_width="match_parent"
@@ -14,7 +24,7 @@
         android:enabled="true"
         android:text="Nächste Frage"
         android:gravity="left"
-        android:textSize="30dp" />
+        android:textSize="12sp" />
 
     <Button
         android:layout_width="match_parent"
@@ -23,7 +33,7 @@
         android:id="@+id/button_a"
         android:onClick="onClickA"
         android:nestedScrollingEnabled="false"
-        android:textSize="30dp" />
+        android:textSize="12sp" />
 
     <Button
         android:layout_width="match_parent"
@@ -31,7 +41,7 @@
         android:text="B"
         android:id="@+id/button_b"
         android:onClick="onClickB"
-        android:textSize="30dp" />
+        android:textSize="12sp" />
 
     <Button
         android:layout_width="match_parent"
@@ -40,7 +50,7 @@
         android:id="@+id/button_c"
         android:onClick="onClickC"
         android:nestedScrollingEnabled="false"
-        android:textSize="30dp" />
+        android:textSize="12sp" />
 
     <Button
         android:layout_width="match_parent"
@@ -69,5 +79,5 @@
         android:id="@+id/button_resume"
         android:layout_gravity="center_horizontal"
         android:onClick="onClickBack"
-        android:textSize="30dp" />
+        android:textSize="12sp" />
 </LinearLayout>

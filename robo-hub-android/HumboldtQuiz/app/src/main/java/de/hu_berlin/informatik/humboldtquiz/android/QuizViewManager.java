@@ -82,7 +82,8 @@ public class QuizViewManager {
 
     public void nextQuestion() {
         System.out.println("question");
-        appCompatActivity.setContentView(R.layout.quiz_layout);
+
+        ((RoboCtrlActivity)appCompatActivity).switchToView(R.id.activity_quiz, R.layout.quiz_layout, RoboCtrlActivity.APP_MODE_QUIZ);
 
         //System.out.println("#Quest pre: " + qc.questionListForLevel.size());
         q = qc.getNextQuestion();

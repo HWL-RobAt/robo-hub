@@ -50,6 +50,7 @@ class AppToRoboCommunicationTask extends AsyncTask<AppToRoboCommunicationControl
             }
 
             app2roboComCtrl.reset();
+            ap2roboConn.reset();
             ap2roboConn.close();
 
             System.out.println("ConnTaskFin");

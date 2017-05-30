@@ -10,17 +10,20 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Display;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Chronometer;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
-import android.widget.TextView;
 
 import de.hu_berlin.informatik.app.connection.protocol.EV3Command;
 import de.hu_berlin.informatik.app.connection.ConnectionInfo;
@@ -41,18 +44,30 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
     public static final int ROBOCTRL_MODE_LINE = 3;
     public static final int ROBOCTRL_MODE_DISTANCE = 4;
 
+    public static final int APP_MODE_GAME = 1;
+    public static final int APP_MODE_QUIZ = 2;
+    public static final int APP_MODE_CONNECTION_CONFIG = 3;
+    public static final int APP_MODE_ROBOCTRL_CONFIG = 4;
+    public static final int APP_MODE_ABOUT = 5;
+
+    int current_app_mode = APP_MODE_GAME;
+    int current_app_view = R.id.activity_robo_ctrl;
+    int current_app_layout = R.layout.activity_robo_ctrl;
+
     QuizViewManager qvm = null;
 
     int quizMode = QUIZ_MODE_STOPPED;
     int connectionMode = CONNECTION_MODE_DISCONNECTED;
-    int roboctrlMode = 0;
+    int roboctrlMode = ROBOCTRL_MODE_TOUCH;
 
     SocketConnection sc = null;
     ConnectionInfo ci = null;
 
     AppToRoboCommunicationControl app2roboComCtrl = null;
+    AsyncTask commTask = null;
 
     Chronometer chronometer;
+    boolean chronometer_running = false;
     long chronometerBase = 0;
 
     final int[] viewSize = new int[2];
@@ -69,87 +84,118 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
     float nullAzimut = -10;
     float nullPitch = -10;
 
-    TextView tvInfo = null;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         if ( qvm == null ) qvm = new QuizViewManager(this);
 
-        ci = new ConnectionInfo("192.168.0.174", 2000); //Dev -> Robo
+        ci = new ConnectionInfo("172.17.0.1",2000);//192.168.0.174", 2000); //Dev -> Robo
         sc = new SocketConnection(ci);
         app2roboComCtrl = new AppToRoboCommunicationControl(sc,this);
 
-        roboctrlMode = 0;
+        setContentView(R.layout.activity_main);
+        current_app_mode = APP_MODE_GAME;
 
-        updateView(true);
+        updateView();
+
+        chronometer = (Chronometer)findViewById(R.id.chronometer);
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
         //get a hook to the sensor service
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         sensorGravity = sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
         sensorCompass = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
         sensorAccel = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+    }
 
+    private void setConnectionMode(int newConnectionMode) {
+        final Button buttonConn = (Button) findViewById(R.id.button_connect);
+        ImageView img = (ImageView) findViewById(R.id.imageView);
+        connectionMode = newConnectionMode;
+
+        if ( connectionMode == CONNECTION_MODE_CONNECTED ) {
+            buttonConn.setText("Disconnect");
+            img.setImageResource(R.drawable.wifi_robo_conn_on);
+        } else {
+            buttonConn.setText("Connect");
+            img.setImageResource(R.drawable.wifi_robo_conn_off);
+        }
+    }
+
+    private void setIPToForm() {
+        EditText etIP = (EditText)findViewById(R.id.conn_setup_ip);
+        EditText etPort = (EditText)findViewById(R.id.conn_setup_port);
+
+        String ipAddr = ci.getNameOrIP().toString();
+        etIP.setText(ipAddr);
+
+        etPort.setText("" + ci.getPort());
+    }
+
+    private void saveIPFromForm() {
+        EditText etIP = (EditText)findViewById(R.id.conn_setup_ip);
+        EditText etPort = (EditText)findViewById(R.id.conn_setup_port);
+        String ipAddr = etIP.getText().toString();
+        int port = Integer.parseInt(etPort.getText().toString());
+
+        if ( !ipAddr.equals("127.0.0.1")) ci.setNameOrIP(ipAddr);
+        ci.setPort(port);
     }
 
     public void onClickConnect(View view) {
         if ( connectionMode == CONNECTION_MODE_DISCONNECTED ) {
-            EditText etIP = (EditText)findViewById(R.id.editText_addr);
-            String ipAddr = etIP.getText().toString();
-
-            if ( !ipAddr.equals("127.0.0.1")) ci.setNameOrIP(ipAddr);
-
-            AsyncTask commTask = new AppToRoboCommunicationTask().execute(app2roboComCtrl);
-
             System.out.println("Connect");
 
-            connectionMode = CONNECTION_MODE_CONNECTED;
+            saveIPFromForm();
+
+            commTask = new AppToRoboCommunicationTask().execute(app2roboComCtrl);
+
+            setConnectionMode(CONNECTION_MODE_CONNECTED);
         } else {
+            System.out.println("Disconnect");
+
             app2roboComCtrl.sendCommand(EV3Command.COMMAND_DISCONNECT);
             app2roboComCtrl.closeConnection();
 
-            System.out.println("Disconnect");
-
-            connectionMode = CONNECTION_MODE_DISCONNECTED;
+            setConnectionMode(CONNECTION_MODE_DISCONNECTED);
         }
-
-        updateView(false);
     }
 
     public void onClickStart(View view) {
         if ( quizMode == QUIZ_MODE_STOPPED) {
-            final Spinner spinner_level = (Spinner) findViewById(R.id.spinner_level);
-            qvm.setLevel(spinner_level.getSelectedItemPosition());
 
-            final Spinner spinner_roboctrl = (Spinner) findViewById(R.id.spinner_roboctrl);
-            roboctrlMode = spinner_roboctrl.getSelectedItemPosition();
+            assert(connectionMode == CONNECTION_MODE_CONNECTED );
 
             System.out.println("Mode: " + roboctrlMode);
-            if ( roboctrlMode >= ROBOCTRL_MODE_GYRO2) app2roboComCtrl.sendCommand(EV3Command.COMMAND_START, roboctrlMode-1, 0, 0);
-            else app2roboComCtrl.sendCommand(EV3Command.COMMAND_START, roboctrlMode, 0, 0);
 
-            startChronometer(false);
+            if (roboctrlMode >= ROBOCTRL_MODE_GYRO2)
+                app2roboComCtrl.sendCommand(EV3Command.COMMAND_START, roboctrlMode - 1, 0, 0);
+            else
+                app2roboComCtrl.sendCommand(EV3Command.COMMAND_START, roboctrlMode, 0, 0);
 
             quizMode = QUIZ_MODE_RUNNING;
 
+            startChronometer();
+
             nullAzimut = -10;
             nullPitch = -10;
-
         } else {
             app2roboComCtrl.sendCommand(EV3Command.COMMAND_STOP);
             stopQuiz(true);
         }
 
-        updateView(false);
+        updateView();
     }
 
     public void stopQuiz(boolean stoppedByUser) {
-        stopChronometer(false);
+        stopChronometer();
         quizMode = QUIZ_MODE_STOPPED;
 
         if (!stoppedByUser) {
-            updateView(false);
+            updateView();
 
             chronometer = (Chronometer)findViewById(R.id.chronometer);
 
@@ -159,8 +205,18 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
 
             String timeString = "" + minutes + "Minute" + ((minutes==1)?" und ":"n und ") + sec + "Sekunde" + ((sec==1)?"":"n");
 
-            tvInfo.setText("Herzlichen Glückwunsch!\nDu hast Reise in " + timeString + " geschafft!");
+            //TextView tvInfo = ;
+            //tvInfo.setText("Herzlichen Glückwunsch!\nDu hast Reise in " + timeString + " geschafft!");
         }
+    }
+
+    public void getSpinnerItems() {
+        Spinner spinner_level = (Spinner) findViewById(R.id.spinner_level);
+        Spinner spinner_roboctrl = (Spinner) findViewById(R.id.spinner_roboctrl);
+
+        // Apply the adapter to the spinner
+        qvm.setLevel(spinner_level.getSelectedItemPosition());
+        roboctrlMode = spinner_roboctrl.getSelectedItemPosition();
     }
 
     public void setSpinnerItems() {
@@ -180,63 +236,32 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
 
         spinner_roboctrl.setAdapter(adapter_roboctrl);
         spinner_roboctrl.setSelection(roboctrlMode);
-
     }
 
-    public void updateView(boolean switchContentView) {
-        if ( switchContentView ) {
-            setContentView(R.layout.activity_robo_ctrl);
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+    public void updateView() {
 
-            if ( ! ci.getNameOrIP().equals("127.0.0.1")) {
-                EditText etIP = (EditText) findViewById(R.id.editText_addr);
-                etIP.setText(ci.getNameOrIP());
+        if ( current_app_mode == APP_MODE_GAME ) {
+
+            final Button buttonStart = (Button) findViewById(R.id.button_start);
+
+            if (quizMode == QUIZ_MODE_STOPPED) {
+                buttonStart.setText("Start");
+            } else {
+                buttonStart.setText("Stop");
             }
 
-            setSpinnerItems();
+            if (connectionMode == CONNECTION_MODE_DISCONNECTED) {
+                buttonStart.setEnabled(false);
+            } else {
+                buttonStart.setEnabled(true);
+            }
 
-            chronometer = (Chronometer)findViewById(R.id.chronometer);
+            setTouchPanel((roboctrlMode == ROBOCTRL_MODE_TOUCH) && (quizMode == QUIZ_MODE_RUNNING));
 
-            tvInfo = (TextView)findViewById(R.id.textView_info);
-            if ( quizMode == QUIZ_MODE_RUNNING ) startChronometer(true);
         }
+    }
 
-        if ( connectionMode == CONNECTION_MODE_DISCONNECTED ) {
-            final Button buttonConn = (Button) findViewById(R.id.button_connect);
-            buttonConn.setText("Connect");
-            final Button buttonStart = (Button) findViewById(R.id.button_start);
-            buttonStart.setEnabled(false);
-        } else {
-            final Button buttonConn = (Button) findViewById(R.id.button_connect);
-            buttonConn.setText("Disconnect");
-
-            final Button buttonStart = (Button) findViewById(R.id.button_start);
-            buttonStart.setEnabled(true);
-        }
-
-        if ( quizMode == QUIZ_MODE_STOPPED) {
-            final Spinner spinner_level = (Spinner) findViewById(R.id.spinner_level);
-            spinner_level.setEnabled(true);
-            final Spinner spinner_roboctrl = (Spinner) findViewById(R.id.spinner_roboctrl);
-            spinner_roboctrl.setEnabled(true);
-            final Button buttonConn = (Button) findViewById(R.id.button_connect);
-            buttonConn.setEnabled(true);
-            final Button buttonStart = (Button) findViewById(R.id.button_start);
-            buttonStart.setText("Start");
-        } else {
-            final Spinner spinner_level = (Spinner) findViewById(R.id.spinner_level);
-            spinner_level.setEnabled(false);
-
-            final Spinner spinner_roboctrl = (Spinner) findViewById(R.id.spinner_roboctrl);
-            spinner_roboctrl.setEnabled(false);
-
-            final Button buttonConn = (Button) findViewById(R.id.button_connect);
-            buttonConn.setEnabled(false);
-
-            final Button buttonStart = (Button) findViewById(R.id.button_start);
-            buttonStart.setText("Stop");
-        }
-
+    private void setTouchPanel(boolean setListener) {
         final ImageView imageView = (ImageView) findViewById(R.id.imageView_roboctrl_touch);
         Display display = getWindowManager().getDefaultDisplay();
         Point size = new Point();
@@ -248,8 +273,8 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
         imageView.getLayoutParams().height = (width-50);
         imageView.getLayoutParams().width = (width-50);
 
-        if ((roboctrlMode == ROBOCTRL_MODE_TOUCH) && (quizMode == QUIZ_MODE_RUNNING)) {
 
+        if ( setListener ) {
             imageView.setOnTouchListener(new View.OnTouchListener() {
                 @Override
                 public boolean onTouch(View v, MotionEvent event) {
@@ -264,42 +289,73 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
                     Log.i("Touch: ", "y = " + String.valueOf(y));
 
                     if (connectionMode == CONNECTION_MODE_CONNECTED) {
-                        if (action == 2) app2roboComCtrl.sendCommand(EV3Command.COMMAND_MOVE, x, y, 1);
-                        else             app2roboComCtrl.sendCommand(EV3Command.COMMAND_MOVE, 0, 0, 0);
+                        if (action == 2)
+                            app2roboComCtrl.sendCommand(EV3Command.COMMAND_MOVE, x, y, 1);
+                        else
+                            app2roboComCtrl.sendCommand(EV3Command.COMMAND_MOVE, 0, 0, 0);
                     }
 
                     return true;
                 }
             });
         }
-
-
     }
 
-    public void stopChronometer(boolean justSwitchView) {
-        if ( justSwitchView ) chronometerBase  = chronometer.getBase();
-        else                  chronometer.stop();
-    }
-
-    public void startChronometer(boolean justSwitchView) {
-        chronometer.start();
-        if ( justSwitchView ) chronometer.setBase(chronometerBase);
-        else {
+    public void startChronometer() {
+        System.out.println("Start Chronometer");
+        if (chronometer_running) {
+            System.out.println("Chronometer startet twice");
+            //chronometer.setBase(chronometerBase);
+        } else {
+            chronometer = (Chronometer)findViewById(R.id.chronometer);
+            chronometer.start();
             chronometer.setBase(SystemClock.elapsedRealtime());
+            chronometer_running = true;
+        }
+
+        //disable button
+    }
+
+    public void continueChronometer() {
+        System.out.println("Cont Chronometer");
+        if (chronometer_running) {
+            chronometer = (Chronometer)findViewById(R.id.chronometer);
+            chronometer.start();
+            chronometer.setBase(chronometerBase);
+        }
+    }
+
+    public void breakChronometer() {
+        System.out.println("Break Chronometer");
+        if (chronometer_running) {
+            chronometer = (Chronometer)findViewById(R.id.chronometer);
+            chronometer.stop();
             chronometerBase  = chronometer.getBase();
         }
     }
+
+    public void stopChronometer() {
+        System.out.println("Stop Chronometer");
+        if (chronometer_running) {
+            chronometer = (Chronometer)findViewById(R.id.chronometer);
+            chronometer.stop();
+            chronometer_running = false;
+        }
+    }
+
 
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         final ImageView imageView = (ImageView) findViewById(R.id.imageView_roboctrl_touch);
 
-        imageView.getLocationOnScreen(viewPos);
-        viewSize[0] = imageView.getWidth();
-        viewSize[1] = imageView.getHeight();
+        if ( imageView != null ) {
+            imageView.getLocationOnScreen(viewPos);
+            viewSize[0] = imageView.getWidth();
+            viewSize[1] = imageView.getHeight();
 
-        Log.i("ImageView", "S: " + imageView.getHeight() + " / " + imageView.getWidth());
-        Log.i("ImageView", "P: " + viewPos[0] + " / " + viewPos[1]);
+            Log.i("ImageView", "S: " + imageView.getHeight() + " / " + imageView.getWidth());
+            Log.i("ImageView", "P: " + viewPos[0] + " / " + viewPos[1]);
+        }
     }
 
     //Go back from question to RoboCtrlView
@@ -309,12 +365,16 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
         app2roboComCtrl.reset(); //delete old moves
         app2roboComCtrl.sendCommand(EV3Command.COMMAND_ANSWER,qvm.lastAnswerCorrect?1:2,0,0);
 
-        updateView(true);
+        switchToView(R.id.activity_robo_ctrl, R.layout.activity_robo_ctrl, APP_MODE_GAME);
+
+        continueChronometer();
+
+        updateView();
     }
 
     public void onClickQuestion(View view) {
         app2roboComCtrl.reset();
-        stopChronometer(true);
+        breakChronometer();
         qvm.nextQuestion();
     }
 
@@ -368,21 +428,24 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
 
         if (quizMode == QUIZ_MODE_RUNNING) {
             //if sensor is unreliable, return void
+
             if (event.accuracy == SensorManager.SENSOR_STATUS_UNRELIABLE) {
                 //System.out.println("SensorManager.SENSOR_STATUS_UNRELIABLE");
                 //return;
             }
 
-            if (roboctrlMode == ROBOCTRL_MODE_GYRO) {
-                //System.out.println("SenChanged: " + event.sensor.getType());
-                if (event.sensor.getType() == Sensor.TYPE_GRAVITY) {
-                    //y : rechts -  links +
-                    // z: vorn + hinten -
-                    int x = (int) Math.max(Math.min(50 + Math.round(-12.5 * event.values[1]), 100), 0);
-                    int y = (int) Math.max(Math.min(50 + Math.round(-12.5 * event.values[0]), 100), 0);
+            switch (roboctrlMode) {
+                case ROBOCTRL_MODE_GYRO:
+                    //System.out.println("SenChanged: " + event.sensor.getType());
+                    if (event.sensor.getType() == Sensor.TYPE_GRAVITY) {
+                        //y : rechts -  links +
+                        // z: vorn + hinten -
+                        int x = (int) Math.max(Math.min(50 + Math.round(-12.5 * event.values[1]), 100), 0);
+                        int y = (int) Math.max(Math.min(50 + Math.round(-12.5 * event.values[0]), 100), 0);
 
-                    app2roboComCtrl.sendCommand(EV3Command.COMMAND_MOVE, x, y, 1);
-                }
+                        app2roboComCtrl.sendCommand(EV3Command.COMMAND_MOVE, x, y, 1);
+                    }
+                    break;
             }
 
             if (roboctrlMode == ROBOCTRL_MODE_GYRO2) {
@@ -399,7 +462,7 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
                             SensorManager.getOrientation(R, orientation);
                             float azimut = orientation[0]; // orientation contains: azimut: Compass
                             float pitch = orientation[1];  // gas
-                            float roll = orientation[2];   // rotation
+                            //float roll = orientation[2];   // rotation
 
                             if (nullAzimut == -10) {
                                 nullAzimut = azimut;
@@ -427,4 +490,115 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
             }
         }
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+
+
+    public void switchToView(int new_view_id, int new_layout_id, int new_app_mode) {
+        View C = findViewById(current_app_view);
+        assert(C != null);
+
+        current_app_view = new_view_id;
+        current_app_layout = new_layout_id;
+        current_app_mode = new_app_mode;
+
+        //ViewGroup parent = (ViewGroup)C.getParent();
+        ViewGroup parent = (ViewGroup)findViewById(R.id.activity_main);
+        int index = parent.indexOfChild(C);
+        parent.removeView(C);
+
+        C = getLayoutInflater().inflate(new_layout_id, parent, false);
+
+        parent.addView(C, index);
+
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        //save everything of current view
+        switch (current_app_mode) {
+            case APP_MODE_GAME:
+                break;
+            case APP_MODE_ROBOCTRL_CONFIG:
+                getSpinnerItems();
+                break;
+            case APP_MODE_CONNECTION_CONFIG:
+                saveIPFromForm();
+                break;
+            case APP_MODE_ABOUT:
+                break;
+        }
+
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+        int new_view_id = R.id.activity_robo_ctrl;
+        int new_layout_id = R.layout.activity_robo_ctrl;
+        int new_app_mode = APP_MODE_GAME;
+
+        //noinspection SimplifiableIfStatement
+        switch (id) {
+            case R.id.action_control:
+            case R.id.action_quit:
+                new_app_mode = APP_MODE_GAME;
+                new_view_id = R.id.activity_robo_ctrl;
+                new_layout_id = R.layout.activity_robo_ctrl;
+                break;
+            case R.id.action_connection:
+                new_app_mode = APP_MODE_CONNECTION_CONFIG;
+                new_view_id = R.id.connection_setup_main;
+                new_layout_id = R.layout.connection_setup_main;
+                break;
+            case R.id.action_settings:
+                new_app_mode = APP_MODE_ROBOCTRL_CONFIG;
+                new_view_id = R.id.activity_robo_ctrl_config;
+                new_layout_id = R.layout.activity_robo_ctrl_config;
+                break;
+            case R.id.action_about:
+                new_app_mode = APP_MODE_ABOUT;
+                new_view_id = R.id.activity_about;
+                new_layout_id = R.layout.activity_about;
+                break;
+        }
+
+        switchToView(new_view_id, new_layout_id, new_app_mode);
+
+        // post view/layout switch
+        switch (id) {
+            case R.id.action_control:
+                updateView();
+                break;
+            case R.id.action_connection:
+                setConnectionMode(connectionMode); //just to set buttons and images
+                setIPToForm();
+                break;
+            case R.id.action_settings:
+                setSpinnerItems();
+                break;
+            case R.id.action_about:
+                break;
+            case R.id.action_quit:
+                app2roboComCtrl.sendCommand(EV3Command.COMMAND_DISCONNECT);
+                app2roboComCtrl.closeConnection();
+                closeApp();
+                break;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    void closeApp() {
+        //android.os.Process.killProcess(android.os.Process.myPid());
+        System.exit(1);
+    }
+
 }
