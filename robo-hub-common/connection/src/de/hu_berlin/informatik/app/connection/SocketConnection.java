@@ -149,6 +149,15 @@ public class SocketConnection implements Connection {
     serv = null;
   }
 
+  public void reset() {
+    hasPrefetched = false;
+    try {
+      in.reset();
+    } catch(IOException e) {
+      System.err.println("Datainputstream is already closed.");
+    }
+  }
+
   public boolean isClosed() {
     return ((serv == null) && (s == null));
   }
