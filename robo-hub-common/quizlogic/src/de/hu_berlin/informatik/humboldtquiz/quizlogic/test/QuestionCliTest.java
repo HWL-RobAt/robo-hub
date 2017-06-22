@@ -16,15 +16,19 @@ public class QuestionCliTest {
 
   public static void main(String[] args) {
     QuestionsCatalog qc = new QuestionsCatalog();
-    qc.loadCatalog("AppLogic/data/test_questions.csv");
+    qc.loadCatalog("/home/robert/UNI/PhD/2016/application/robo-hub/robo-hub-common/quizlogic/data/test_questions_2.csv");
 
     Scanner scanner = new Scanner(System.in, "UTF-8");
     scanner.useLocale(java.util.Locale.US);
 
     int ansInt = -1;
 
+    int i = 0;
+
     while (ansInt != 0) {
+      System.out.println(qc.stationTopic.get(i)); i++;
       Question q = qc.getNextQuestion();
+      if ( q == null ) break;
       boolean isCorrect = q.askQuestion();
 
       if ( isCorrect ) System.out.println("Richtig!");

@@ -16,21 +16,26 @@ import java.util.Vector;
  */
 public class QuestionsCatalog {
   Random rand = null;
-  List<Question> questions = null;
-  HashMap<String, String[]> answers4Question = null;
-  HashMap<Integer, List<Question>> questionsWithLevel = null;
+  QuestionsList questions = null;
+  HashMap<Integer, List<QuestionsList>> questionsWithLevel = null;
 
-  int currentLevel = -1;
-  List<Question> questionListForLevel = null;
+  int currentLevel = 0;
+  //Questions for multiple stations
+  List<QuestionsList> questionListForLevel = null;
 
   boolean randQuestion = false;
+
+  public List<String> stationTopic = null;
 
   public QuestionsCatalog() {
     rand = new Random();
     rand.setSeed(0);
-    questions = new ArrayList<Question>();
-    answers4Question = new HashMap<String, String[]>();
-    questionsWithLevel = new HashMap<Integer, List<Question>>();
+    questions = new QuestionsList();
+    questionsWithLevel = new HashMap<Integer, List<QuestionsList>>();
+
+    questionListForLevel = new ArrayList<QuestionsList>();
+
+    stationTopic = new ArrayList<String>();
   }
 
   public void loadCatalog(InputStream is) {
@@ -61,29 +66,43 @@ public class QuestionsCatalog {
       while (null != (line = bufR.readLine())) {
         System.out.println("Read:" + line);
         String[] data = line.split(";");
-        int level = new Integer(data[0]);
-        String question = data[1];
-        String answers[] = new String[data.length-2];
-        for ( int i = 2; i < data.length; i++)
-          answers[i-2] = data[i];
-        Question q = new Question(question,answers,0,level);
-        questions.add(q);
-        answers4Question.put(question, answers);
-        List<Question> questionListLevel = null;
-        if ( ! questionsWithLevel.containsKey(level) ) {
-          questionListLevel = new ArrayList<Question>();
-          questionsWithLevel.put(level, questionListLevel);
+
+        int level = -1;
+        int station = new Integer(data[1]) - 1;
+        if ( data[0].equals("-") ) {
+          stationTopic.add(station,data[2]);
+          continue;
         } else {
-          questionListLevel = questionsWithLevel.get(level);
+          level = new Integer(data[0]);
         }
-        questionListLevel.add(q);
+
+        String question = data[2];
+        String answers[] = new String[data.length-3];
+        for ( int i = 3; i < data.length; i++)
+          answers[i-3] = data[i];
+
+        Question q = new Question(question,answers,0,level);
+        questions.addQuestion(q);
+
+        List<QuestionsList> questionListLevel = null;
+        if ( ! questionsWithLevel.containsKey(level) ) {
+          questionsWithLevel.put(level, new ArrayList<QuestionsList>());
+        }
+        questionListLevel = questionsWithLevel.get(level);
+
+        QuestionsList questionList = null;
+        if ( questionListLevel.size() <= station ) {
+           questionListLevel.add(station,new QuestionsList());
+        }
+        questionList = questionListLevel.get(station);
+
+        questionList.addQuestion(q);
       }
 
     } catch (IOException e) {
       throw new RuntimeException(e.getMessage());
     }
 
-    questionListForLevel = new Vector<Question>();
     resetQuestionList();
   }
 
@@ -102,8 +121,7 @@ public class QuestionsCatalog {
     System.out.println("0: " + questionsWithLevel.get(0).size());
     System.out.println("1: " + questionsWithLevel.get(1).size());
 
-
-    List<Question> copyList = questions;
+    List<QuestionsList> copyList = questionsWithLevel.get(currentLevel);
     if ((currentLevel != -1) && (questionsWithLevel.containsKey(currentLevel))) {
       copyList = questionsWithLevel.get(currentLevel);
     }
@@ -115,10 +133,13 @@ public class QuestionsCatalog {
   public Question getNextQuestion() {
     if ( questionListForLevel.size() == 0 ) return null;
 
+    //get random station orjust next
     int q_index = randQuestion?rand.nextInt(questionListForLevel.size()):0;
 
-    Question q = questionListForLevel.get(q_index);
+    QuestionsList ql = questionListForLevel.get(q_index);
     questionListForLevel.remove(q_index);
+
+    Question q = ql.getQuestion(rand.nextInt(ql.size()));
 
     q.randAnswers();
 
