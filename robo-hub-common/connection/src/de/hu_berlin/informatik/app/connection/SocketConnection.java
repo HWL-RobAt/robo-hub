@@ -128,11 +128,22 @@ public class SocketConnection implements Connection {
   public void close() {
     if (s != null) {
       try {
+        if ( in != null ) {
+          in.close();
+          in = null;
+        }
+
+        if ( out != null ) {
+          out.close();
+          out = null;
+        }
+
         s.close();
       } catch (IOException ioe) {
         System.out.println("Error on close.");
         s = null;
       }
+      //System.out.println("Socket closed");
     }
 
     s = null;
@@ -144,17 +155,36 @@ public class SocketConnection implements Connection {
         System.out.println("Error on close.");
         serv = null;
       }
+      //System.out.println("Server-Socket closed");
     }
 
     serv = null;
+
   }
 
   public void reset() {
     hasPrefetched = false;
-    try {
-      in.reset();
-    } catch(IOException e) {
-      System.err.println("Datainputstream is already closed.");
+
+
+    if ( (s == null ) || (s.isClosed()) ) {
+      in = null;
+      out = null;
+    }
+
+    if ( in != null ) {
+      try {
+        in.reset();
+      } catch (IOException e) {
+        //System.err.println("Datainputstream is already closed.");
+      }
+    }
+
+    if ( out != null ) {
+      try {
+        out.flush();
+      } catch (IOException e) {
+        //System.err.println("Dataoutputstream is already closed.");
+      }
     }
   }
 

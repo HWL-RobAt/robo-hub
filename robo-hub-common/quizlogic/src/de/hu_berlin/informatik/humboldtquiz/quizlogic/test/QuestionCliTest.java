@@ -23,12 +23,11 @@ public class QuestionCliTest {
 
     int ansInt = -1;
 
-    int i = 0;
 
     while (ansInt != 0) {
-      System.out.println(qc.stationTopic.get(i)); i++;
       Question q = qc.getNextQuestion();
       if ( q == null ) break;
+      System.out.println(qc.getStationTopic());
       boolean isCorrect = q.askQuestion();
 
       if ( isCorrect ) System.out.println("Richtig!");

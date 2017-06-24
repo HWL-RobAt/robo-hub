@@ -20,6 +20,7 @@ public class QuestionsCatalog {
   HashMap<Integer, List<QuestionsList>> questionsWithLevel = null;
 
   int currentLevel = 0;
+  int currentStation = -1;
   //Questions for multiple stations
   List<QuestionsList> questionListForLevel = null;
 
@@ -128,6 +129,8 @@ public class QuestionsCatalog {
     System.out.println("Size copyList: " + copyList.size());
 
     for  ( int i = 0; i < copyList.size(); i++) questionListForLevel.add(copyList.get(i));
+
+    currentStation = -1;
   }
 
   public Question getNextQuestion() {
@@ -140,10 +143,16 @@ public class QuestionsCatalog {
     questionListForLevel.remove(q_index);
 
     Question q = ql.getQuestion(rand.nextInt(ql.size()));
+    currentStation++;
 
     q.randAnswers();
 
     return q;
+  }
+
+  public String getStationTopic() {
+    if ( (currentStation < 0) || ( currentStation >= stationTopic.size()) ) return "";
+    return stationTopic.get(currentStation);
   }
 
   public void setRandQuestion(boolean randQuestion) {
