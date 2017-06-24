@@ -85,7 +85,8 @@ public class RoboShadowFunction {
       throw new RuntimeException();
     } */
 
-    int mode = ROBO_MODE_LINE;
+    int mode = 0;//ROBO_MODE_LINE;
+    int roboMoveMode = 0;
 
     /*
      * Communication
@@ -108,7 +109,7 @@ public class RoboShadowFunction {
     int params[] = {0, 0, 0};
     int command = -1;
 
-    do {
+    //do {
 
       lcd.drawString("Ready for next Quiz", 1, 2);
 
@@ -136,7 +137,7 @@ public class RoboShadowFunction {
         roboMoveMode = params[0];
 
         lcd.drawString("Mode: " + roboMoveMode, 1, 1);
-
+          /*
         switch (roboMoveMode) {
           case ROBO_MODE_CTRL_LINE:
             motionCtrl = motionCtrlBB;
@@ -147,7 +148,7 @@ public class RoboShadowFunction {
 
         motionCtrl.setMaxSpeed(defaultStartSpeed);
         remoteSensor.setDataInputStream(sock);
-
+            */
         running = true;
       } else {
         if (command == EV3Command.COMMAND_DISCONNECT) {
@@ -157,7 +158,7 @@ public class RoboShadowFunction {
           running = false;
         }
       }
-
+              /*
       while (running) {
         for ( int i = 0; i < colSensorList.length; i++) colSensorList[i].update(blackBoard);
 
@@ -259,8 +260,8 @@ public class RoboShadowFunction {
               sock.returnReceivedInt(rxTxInt);
           }
         }
-
-        if (running == false) break;
+                */
+        /*if (running == false) break;
 
         int speed[] = motionCtrl.getSpeed();
 
@@ -283,16 +284,16 @@ public class RoboShadowFunction {
           throw new RuntimeException();
         }
 
-        running = running && keys.isButtonUp("Escape") && (!sock.isClosed());
-      }
-
+        running = running && keys.isButtonUp("Escape") && (!sock.isClosed());*/
+     // }
+                                                                                 /*
       roboMotorCtl.stop();
       lcd.clear();
 
     } while (!sock.isClosed());
 
     for ( int i = 0; i < colSensorList.length; i++) colSensorList[i].close();
-    if ( debugRS != null ) debugRS.close();
+    if ( debugRS != null ) debugRS.close();                                    */
   }
 
 }
