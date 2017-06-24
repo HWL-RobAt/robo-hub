@@ -12,47 +12,42 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
 
-    <TableLayout
+    <TableRow
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="36dp" >
 
-        <TableRow
+        <TextView
+            android:text="@string/level"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/textView_level"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body2"
+            android:textSize="18sp"
+            android:textAlignment="textStart" />
+
+        <Spinner
             android:layout_width="match_parent"
-            android:layout_height="match_parent" >
+            android:layout_height="wrap_content"
+            android:id="@+id/spinner_level" />
+    </TableRow>
 
-            <TextView
-                android:text="@string/level"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/textView_level"
-                android:textAppearance="@style/TextAppearance.AppCompat.Body2"
-                android:textSize="18sp"
-                android:textAlignment="textStart" />
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" >
 
-            <Spinner
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/spinner_level" />
-        </TableRow>
+        <TextView
+            android:text="@string/roboctrl"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/textView_roboctrl"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body2"
+            android:textSize="18sp"
+            android:textAlignment="textStart" />
 
-        <TableRow
+        <Spinner
             android:layout_width="match_parent"
-            android:layout_height="match_parent" >
+            android:layout_height="wrap_content"
+            android:id="@+id/spinner_roboctrl" />
+    </TableRow>
 
-            <TextView
-                android:text="@string/roboctrl"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/textView_roboctrl"
-                android:textAppearance="@style/TextAppearance.AppCompat.Body2"
-                android:textSize="18sp"
-                android:textAlignment="textStart" />
-
-            <Spinner
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/spinner_roboctrl" />
-        </TableRow>
-
-    </TableLayout>
 </LinearLayout>

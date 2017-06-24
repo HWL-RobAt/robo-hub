@@ -11,19 +11,21 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     app:layout_behavior="@string/appbar_scrolling_view_behavior">
-    >
 
     <TextView
-        android:text="HumboldtQuiz"
+        android:text="@string/textfield_about"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/textView"
-        android:layout_weight="0.22" />
+        android:layout_weight="0.22"
+        android:textSize="24sp"
+        android:inputType="textMultiLine|textNoSuggestions" />
 
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:srcCompat="@mipmap/robohub"
         android:id="@+id/imageView2"
-        android:layout_weight="0.22" />
+        android:layout_weight="0.22"
+        android:contentDescription="@string/imagedesc_about" />
 </LinearLayout>

@@ -2,6 +2,7 @@
 <resources>
     <string-array name="level_items">
         <item>Leicht</item>
+        <item>Mittel</item>
         <item>Schwer</item>
     </string-array>
 </resources>

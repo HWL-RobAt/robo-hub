@@ -16,68 +16,82 @@
 
     <EditText
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:inputType="textMultiLine"
+        android:layout_height="0dp"
         android:ems="10"
         android:id="@+id/question"
-        android:layout_weight="0.90"
+        android:layout_weight="0.88"
         android:enabled="true"
-        android:text="Nächste Frage"
+        android:text="@string/textfield_next_question"
         android:gravity="left"
-        android:textSize="12sp" />
+        android:textSize="30sp"
+        tools:ignore="RtlHardcoded"
+        android:clickable="false"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:cursorVisible="false"
+        android:inputType="textMultiLine|textNoSuggestions" />
 
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="A"
+        android:text="@string/button_a"
         android:id="@+id/button_a"
         android:onClick="onClickA"
         android:nestedScrollingEnabled="false"
-        android:textSize="12sp" />
+        android:textSize="24sp"
+        tools:targetApi="lollipop" />
 
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="B"
+        android:text="@string/button_b"
         android:id="@+id/button_b"
         android:onClick="onClickB"
-        android:textSize="12sp" />
+        android:textSize="24sp" />
 
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="C"
+        android:text="@string/button_c"
         android:id="@+id/button_c"
         android:onClick="onClickC"
         android:nestedScrollingEnabled="false"
-        android:textSize="12sp" />
-
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="D"
-        android:id="@+id/button_d"
-        android:onClick="onClickD"
-        android:nestedScrollingEnabled="false"
-        android:visibility="invisible"
-        android:textSize="30dp" />
+        android:textSize="24sp"
+        tools:ignore="HardcodedText"
+        tools:targetApi="lollipop" />
 
     <EditText
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="44dp"
         android:id="@+id/question_result"
         android:layout_gravity="center_horizontal"
-        android:layout_weight="0.05"
         android:visibility="invisible"
-        android:textSize="30dp"
-        android:text="Richtig/Falsch" />
+        android:textSize="24sp"
+        android:text="@string/wrong_right"
+        android:inputType="textMultiLine|textNoSuggestions"
+        android:textAlignment="center"
+        android:layout_weight="0.07"
+        android:clickable="false"
+        android:focusable="false"
+        android:focusableInTouchMode="false" />
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Weiter"
+        android:text="@string/button_next"
         android:id="@+id/button_resume"
         android:layout_gravity="center_horizontal"
         android:onClick="onClickBack"
-        android:textSize="12sp" />
+        android:textSize="24sp" />
+
+    <Button
+        android:layout_width="match_parent"
+        android:text="@string/button_d"
+        android:id="@+id/button_d"
+        android:onClick="onClickD"
+        android:nestedScrollingEnabled="false"
+        android:visibility="invisible"
+        android:textSize="12sp"
+        tools:targetApi="lollipop"
+        android:layout_height="0dp" />
 </LinearLayout>

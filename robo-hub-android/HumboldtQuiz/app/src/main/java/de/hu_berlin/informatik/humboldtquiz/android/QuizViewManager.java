@@ -34,7 +34,7 @@ public class QuizViewManager {
         try {
             //Create a InputStream to read the file into and get the file as a stream
             //InputStream inS = resources.getAssets().open("test_questions.csv");
-            InputStream inS = resources.getAssets().open("quest_cata_002.csv");
+            InputStream inS = resources.getAssets().open("test_questions_2.csv");
             qc.loadCatalog(inS);
         } catch (IOException e) {
             throw new RuntimeException(e.getMessage());
@@ -48,6 +48,10 @@ public class QuizViewManager {
 
     public int getLevel() {
         return qc.getLevel();
+    }
+
+    public void resetQuestions() {
+        qc.resetQuestionList();
     }
 
     public void onClickAnswerButton(int v) {
@@ -100,7 +104,8 @@ public class QuizViewManager {
         buttonR.setVisibility(View.INVISIBLE);
 
         final TextView textQuestion = (TextView) appCompatActivity.findViewById(R.id.question);
-        textQuestion.setText(q.getQuestion());
+        String topic = qc.getStationTopic().replace("%",System.getProperty("line.separator"));
+        textQuestion.setText(topic + "\n\n" + q.getQuestion());
 
         final Button buttonA = (Button) appCompatActivity.findViewById(R.id.button_a);
         buttonA.setText(q.getAnswers()[0]);

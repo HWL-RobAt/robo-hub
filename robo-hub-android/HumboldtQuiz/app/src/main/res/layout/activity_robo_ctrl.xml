@@ -19,48 +19,64 @@
         android:weightSum="1">
 
 
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/button_start"
+            android:id="@+id/button_start"
+            android:enabled="true"
+            android:onClick="onClickStart"
+            android:textSize="24sp"
+            android:textAlignment="center"
+            tools:ignore="RelativeOverlap"
+            android:layout_weight="0.12" />
+
         <Chronometer
-            android:layout_width="48dp"
+            android:layout_width="0dp"
             android:layout_height="61dp"
             android:id="@+id/chronometer"
             android:layout_gravity="bottom|center"
-            android:textSize="14dp"
+            android:textSize="24sp"
             android:textAlignment="center"
             android:gravity="center_vertical|center_horizontal"
-            android:layout_alignParentTop="true"
-            android:layout_toStartOf="@+id/button_start"
             android:layout_weight="0.91" />
 
     </LinearLayout>
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Start"
-        android:id="@+id/button_start"
-        android:enabled="true"
-        android:onClick="onClickStart"
-        android:textSize="12dp"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
-        android:layout_weight="0.09"
-        android:textAlignment="center" />
 
     <ImageView
         android:layout_width="match_parent"
         android:id="@+id/imageView_roboctrl_touch"
         android:src="#31b7fa"
         android:layout_gravity="center_horizontal"
-        android:layout_weight="0.10"
         android:layout_height="200dp"
         android:layout_centerVertical="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:contentDescription="@string/imagedesc_touchfield" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:layout_below="@+id/imageView_roboctrl_touch"
+        android:layout_marginTop="24dp"
+        android:id="@+id/editText_result"
+        android:layout_above="@+id/question_button"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:clickable="false"
+        android:cursorVisible="false"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:inputType="textMultiLine|textNoSuggestions"
+        android:textSize="24sp" />
 
     <Button
         style="?android:attr/buttonStyleSmall"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Fragen"
+        android:text="@string/button_question"
         android:id="@+id/question_button"
         android:layout_gravity="center_horizontal"
         android:onClick="onClickQuestion"

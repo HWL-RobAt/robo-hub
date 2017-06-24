@@ -24,6 +24,7 @@ import android.widget.Chronometer;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import de.hu_berlin.informatik.app.connection.protocol.EV3Command;
 import de.hu_berlin.informatik.app.connection.ConnectionInfo;
@@ -90,7 +91,7 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
 
         if ( qvm == null ) qvm = new QuizViewManager(this);
 
-        ci = new ConnectionInfo("172.17.0.1",2000);//192.168.0.174", 2000); //Dev -> Robo
+        ci = new ConnectionInfo("192.168.0.184",2000);//192.168.0.174", 2000); //Dev -> Robo
         sc = new SocketConnection(ci);
         app2roboComCtrl = new AppToRoboCommunicationControl(sc,this);
 
@@ -180,6 +181,9 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
 
             startChronometer();
 
+            TextView tvInfo = (TextView)findViewById(R.id.editText_result);;
+            tvInfo.setText("");
+
             nullAzimut = -10;
             nullPitch = -10;
         } else {
@@ -194,7 +198,9 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
         stopChronometer();
         quizMode = QUIZ_MODE_STOPPED;
 
-        if (!stoppedByUser) {
+        qvm.resetQuestions();
+
+        //if (!stoppedByUser) {
             updateView();
 
             chronometer = (Chronometer)findViewById(R.id.chronometer);
@@ -203,11 +209,11 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
             long minutes = (elapsedMillis/1000)/60;
             long sec = (elapsedMillis/1000)%60;
 
-            String timeString = "" + minutes + "Minute" + ((minutes==1)?" und ":"n und ") + sec + "Sekunde" + ((sec==1)?"":"n");
+            String timeString = "" + minutes + " Minute" + ((minutes==1)?" und ":"n und ") + sec + " Sekunde" + ((sec==1)?"":"n");
 
-            //TextView tvInfo = ;
-            //tvInfo.setText("Herzlichen Glückwunsch!\nDu hast Reise in " + timeString + " geschafft!");
-        }
+            TextView tvInfo = (TextView)findViewById(R.id.editText_result);;
+            tvInfo.setText("Herzlichen Glückwunsch!\nDu hast die Reise in " + timeString + " geschafft!");
+        //}
     }
 
     public void getSpinnerItems() {

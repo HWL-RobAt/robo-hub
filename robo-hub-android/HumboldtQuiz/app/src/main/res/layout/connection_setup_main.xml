@@ -15,14 +15,15 @@
 
     <TableLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        tools:ignore="UselessParent">
 
         <TableRow
             android:layout_width="match_parent"
             android:layout_height="match_parent" >
 
             <TextView
-                android:text="IP"
+                android:text="@string/textfield_default_ip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/textView_ip"
@@ -45,7 +46,7 @@
             android:layout_height="match_parent" >
 
             <TextView
-                android:text="Port"
+                android:text="@string/text_port"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/textView_port"
@@ -58,7 +59,7 @@
                 android:inputType="number"
                 android:ems="10"
                 android:id="@+id/conn_setup_port"
-                android:text="3000" />
+                android:text="@string/textfield_default_port" />
         </TableRow>
 
         <TableRow
@@ -66,7 +67,7 @@
             android:layout_height="match_parent" >
 
             <Button
-                android:text="Connect"
+                android:text="@string/button_connect"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/button_connect"

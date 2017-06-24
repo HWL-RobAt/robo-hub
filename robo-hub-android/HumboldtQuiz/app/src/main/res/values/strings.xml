@@ -5,9 +5,25 @@
     <string name="connection_settings">Connection</string>
     <string name="about">About</string>
     <string name="quit">Quit</string>
-    <string name="defaultIP">127.0.0.1</string>
+    <string name="defaultIP">192.168.0.184</string>
     <string name="defaultPort">3000</string>
     <string name="showconnectionstate">Show connection state</string>
     <string name="level">Level</string>
     <string name="roboctrl">Controller</string>
+    <string name="textfield_next_question">Nächste Frage</string>
+    <string name="wrong_right">Richtig/Falsch</string>
+    <string name="button_a">A</string>
+    <string name="button_b">B</string>
+    <string name="button_d">D</string>
+    <string name="button_c">C</string>
+    <string name="button_next">Weiter</string>
+    <string name="textfield_about">HumboldtQuiz</string>
+    <string name="imagedesc_about">robo-hub-logo</string>
+    <string name="imagedesc_touchfield">imagedesc_touchfield</string>
+    <string name="button_start">Start</string>
+    <string name="button_question">Fragen</string>
+    <string name="textfield_default_port">3000</string>
+    <string name="button_connect">Connect</string>
+    <string name="textfield_default_ip">IP</string>
+    <string name="text_port">Port</string>
 </resources>
