@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Main-Class: de.hu_berlin.informatik.ev3.sensor.color.test.ColorSensorT
+ est
+
