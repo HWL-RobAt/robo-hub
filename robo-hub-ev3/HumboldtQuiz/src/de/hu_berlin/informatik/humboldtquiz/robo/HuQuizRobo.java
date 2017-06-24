@@ -26,6 +26,8 @@ import lejos.robotics.Color;
 
 import java.io.PrintWriter;
 
+import static lejos.hardware.ev3.LocalEV3.ev3;
+
 /**
  * Created by IntelliJ IDEA.
  * User: robert
@@ -50,7 +52,8 @@ public class HuQuizRobo {
   public static void main(String[] args) {
 
     boolean running = false;
-    boolean simMode = true;
+    boolean simMode = false;
+    boolean closeApp = false;
 
     int defaultHighSpeed = 300;
     int defaultLowSpeed = 200;
@@ -86,7 +89,8 @@ public class HuQuizRobo {
 
     if ( tour == ROBO_TOUR_ALEXANDER ) {
 
-      int tour_markerColor[] = { Color.RED, Color.GREEN,
+      int tour_markerColor[] = { Color.GREEN,
+                                 Color.RED, Color.GREEN,
                                  Color.RED, Color.GREEN,
                                  Color.RED, Color.BLACK };
 
@@ -155,212 +159,237 @@ public class HuQuizRobo {
       throw new RuntimeException();
     } */
 
-    int mode = ROBO_MODE_LINE;
-
-    /*
-     * Communication
-     */
-    //ConnectionInfo ci = new ConnectionInfo("server.properties");
-    ConnectionInfo ci = new ConnectionInfo("0.0.0.0", 2000);
-    SocketConnection sock = new SocketConnection(ci);
-    sock.init();
-
-    lcd.drawString("Wait for Client", 1, 2);
-    //ev3.getAudio().setVolume(15);
-    //ev3.getAudio().systemSound(0);
-
-    sock.waitForClient();
-    //ev3.getAudio().systemSound(1);
-
-    lcd.clear(2);
-
-    int rxTxInt = 0;
-    int params[] = {0, 0, 0};
-    int command = -1;
-
     do {
+      lcd.clear();
 
-      lcd.drawString("Ready for next Quiz", 1, 2);
+      int mode = ROBO_MODE_LINE;
 
-      do {
-        command = EV3Command.COMMAND_NONE;
-        if (sock.rxAvailable()) {
-          rxTxInt = sock.receiveInt();
-          command = EV3Command.decode(rxTxInt, params);
-        } else {
-          if (keys.isButtonDown("Escape")) {
-            command = EV3Command.COMMAND_DISCONNECT;
-          } else {
-            try {
-              Thread.sleep(5);
-            } catch (InterruptedException ie) {
-            }
-          }
-        }
-      } while ((command != EV3Command.COMMAND_START) && (command != EV3Command.COMMAND_DISCONNECT));
+      /*
+       * Communication
+       */
+      //ConnectionInfo ci = new ConnectionInfo("server.properties");
+      ConnectionInfo ci = new ConnectionInfo("0.0.0.0", 2000);
+      SocketConnection sock = new SocketConnection(ci);
+      sock.init();
+
+      lcd.drawString("Wait for Client", 1, 2);
+      ev3.getAudio().setVolume(15);
+      ev3.getAudio().systemSound(0);
+
+      sock.waitForClient();
+      ev3.getAudio().systemSound(1);
 
       lcd.clear(2);
-      //ev3.getAudio().systemSound(3);
 
-      if (command == EV3Command.COMMAND_START) {
-        roboMoveMode = params[0];
+      int rxTxInt = 0;
+      int params[] = {0, 0, 0};
+      int command = -1;
 
-        lcd.drawString("Mode: " + roboMoveMode, 1, 1);
+      do {
+        lcd.clear();
+        lcd.drawString("Ready for next Quiz", 1, 2);
 
-        switch (roboMoveMode) {
-          case ROBO_MODE_CTRL_LINE:
-            motionCtrl = motionCtrlBB;
-            break;
-          default:
-            motionCtrl = motionCtrlRemote;
-        }
+        do {
+          command = EV3Command.COMMAND_NONE;
+          if (sock.rxAvailable()) {
+            rxTxInt = sock.receiveInt();
+            command = EV3Command.decode(rxTxInt, params);
+          } else {
+            if (keys.isButtonDown("Escape")) {
+              command = EV3Command.COMMAND_DISCONNECT;
+            } else {
+              try {
+                Thread.sleep(5);
+              } catch (InterruptedException ie) {
+              }
+            }
+          }
+        } while ((command != EV3Command.COMMAND_START) && (command != EV3Command.COMMAND_DISCONNECT));
 
-        motionCtrl.setMaxSpeed(defaultStartSpeed);
-        remoteSensor.setDataInputStream(sock);
+        lcd.clear(2);
+        ev3.getAudio().systemSound(3);
 
-        running = true;
-      } else {
-        if (command == EV3Command.COMMAND_DISCONNECT) {
-          running = false;
-          sock.reset();
-          sock.close();
+        if (command == EV3Command.COMMAND_START) {
+          roboMoveMode = params[0];
+
+          lcd.drawString("Mode: " + roboMoveMode, 1, 1);
+
+          switch (roboMoveMode) {
+            case ROBO_MODE_CTRL_LINE:
+              motionCtrl = motionCtrlBB;
+              break;
+            default:
+              motionCtrl = motionCtrlRemote;
+          }
+
+          motionCtrl.setMaxSpeed(defaultStartSpeed);
+          remoteSensor.setDataInputStream(sock);
+
+          running = true;
         } else {
-          running = false;
+          if (command == EV3Command.COMMAND_DISCONNECT) {
+            running = false;
+            sock.reset();
+            sock.close();
+          } else {
+            running = false;
+          }
         }
-      }
 
-      while (running) {
-        for ( int i = 0; i < colSensorList.length; i++) colSensorList[i].update(blackBoard);
+        while (running) {
+          for (int i = 0; i < colSensorList.length; i++) colSensorList[i].update(blackBoard);
 
-        remoteSensor.update(blackBoard);
+          remoteSensor.update(blackBoard);
 
-        colorSensors.update(blackBoard);
-        markerDetect.update(blackBoard);
+          colorSensors.update(blackBoard);
+          markerDetect.update(blackBoard);
 
-        lineDetector.update(blackBoard);
-        braitenberg.update(blackBoard);
+          lineDetector.update(blackBoard);
+          braitenberg.update(blackBoard);
 
-        motionCtrlRemote.update(blackBoard);
-        motionCtrlBB.update(blackBoard);
+          motionCtrlRemote.update(blackBoard);
+          motionCtrlBB.update(blackBoard);
 
-        int colors[] = colorSensors.getSensorOutput();
-        lcd.clear(5);
-        lcd.drawString("Color: " + colors[0] + " / " + colors[1], 1, 5);
+          int colors[] = colorSensors.getSensorOutput();
+          lcd.clear(5);
+          lcd.drawString("Color: " + colors[0] + " / " + colors[1], 1, 5);
 
-        if ((mode == ROBO_MODE_LINE) && markerDetect.hasMarkerDetected()) {
-          mode = ROBO_MODE_MARKER;
-          int markerCol = markerDetect.getDetectedMarker();
+          if ((mode == ROBO_MODE_LINE) && markerDetect.hasMarkerDetected()) {
+            mode = ROBO_MODE_MARKER;
+            int markerCol = markerDetect.getDetectedMarker();
 
+            lcd.clear(6);
+            lcd.drawString("Marker: " + markerCol + "", 1, 7);
+
+            roboMotorCtl.backward(10);
+
+            try {
+              Thread.sleep((long) (1000 / frequency));
+            } catch (InterruptedException ie) {
+              throw new RuntimeException();
+            }
+
+            roboMotorCtl.stop();
+
+            if (markerCol == markerColor[markerColor.length - 1]) {
+              ev3.getAudio().systemSound(3);
+
+              rxTxInt = EV3Command.encode(EV3Command.COMMAND_STOP);
+              sock.sendInt(rxTxInt);
+
+              running = false;
+            } else {
+              ev3.getAudio().systemSound(4);
+              rxTxInt = EV3Command.encode(EV3Command.COMMAND_QUESTION);
+              sock.sendInt(rxTxInt);
+
+              do {
+                command = EV3Command.COMMAND_NONE;
+                if (sock.rxAvailable()) {
+                  rxTxInt = sock.receiveInt();
+                  command = EV3Command.decode(rxTxInt, params);
+                } else {
+                  if (keys.isButtonDown("Escape")) {
+                    command = EV3Command.COMMAND_STOP;
+                  } else {
+                    try {
+                      Thread.sleep(5);
+                    } catch (InterruptedException ie) {
+                    }
+                  }
+                }
+              } while ((command != EV3Command.COMMAND_ANSWER) && (command != EV3Command.COMMAND_STOP));
+
+              switch (command) {
+                case EV3Command.COMMAND_ANSWER: {
+                  if (params[0] == 1) motionCtrl.setMaxSpeed(defaultHighSpeed);
+                  if (params[0] == 2) motionCtrl.setMaxSpeed(defaultLowSpeed);
+                  break;
+                }
+                case EV3Command.COMMAND_STOP: {
+                  running = false;
+                  break;
+                }
+              }
+            }
+
+            lcd.clear(6);
+            motionCtrl.reset();
+
+            if (running == false) break;
+
+          } else {
+            if (!markerDetect.hasMarkerDetected()) {
+              mode = ROBO_MODE_LINE;
+              lcd.clear(6);
+            }
+          }
+
+          if (sock.rxAvailable()) {
+            rxTxInt = sock.receiveInt();
+            command = EV3Command.decode(rxTxInt, params);
+
+            switch (command) {
+              case EV3Command.COMMAND_STOP:
+                running = false;
+                break;
+              //zum testen
+              case EV3Command.COMMAND_ANSWER:
+                if (params[0] == 1) motionCtrl.setMaxSpeed(defaultHighSpeed);
+                if (params[0] == 2) motionCtrl.setMaxSpeed(defaultLowSpeed);
+                running = true;
+                break;
+
+              default:
+                sock.returnReceivedInt(rxTxInt);
+            }
+          }
+
+          if (running == false) break;
+
+          int speed[] = motionCtrl.getSpeed();
+
+          roboMotorCtl.setSpeed(speed);
+
+          lcd.clear(1);
+          lcd.clear(2);
+          lcd.clear(3);
+          lcd.clear(4);
+          lcd.clear(5);
           lcd.clear(6);
-          lcd.drawString("Marker: " + markerCol + "", 1, 6);
+          lcd.clear(7);
 
-          roboMotorCtl.backward(10);
+          lcd.drawString("Mode: " + mode + "", 1, 1);
+          lcd.drawString("Speed: " + speed[0] + " / " + speed[1], 1, 2);
+          lcd.drawString("Remote: " + motionCtrlRemote.getSpeed()[0] + " " + motionCtrlRemote.getSpeed()[1], 1, 3);
+          lcd.drawString("Line: " + lineDetector.getSensorOutput()[0] + "", 1, 4);
+          lcd.drawString("Color: " + colors[0] + " / " + colors[1], 1, 5);
+          lcd.drawString("Cmd: " + command, 1, 6);
+          lcd.drawString("Marker: " + markerDetect.getNextColor() + "", 1, 7);
 
           try {
-            Thread.sleep((long)(1000 / frequency));
+            Thread.sleep((long) (1000 / frequency));
           } catch (InterruptedException ie) {
             throw new RuntimeException();
           }
 
-          roboMotorCtl.stop();
-
-          if (markerCol == markerColor[markerColor.length-1]) {
-            //ev3.getAudio().systemSound(3);
-
-            rxTxInt = EV3Command.encode(EV3Command.COMMAND_STOP);
-            sock.sendInt(rxTxInt);
-
-            running = false;
-          } else {
-            //ev3.getAudio().systemSound(4);
-            rxTxInt = EV3Command.encode(EV3Command.COMMAND_QUESTION);
-            sock.sendInt(rxTxInt);
-
-            do {
-              command = EV3Command.COMMAND_NONE;
-              if (sock.rxAvailable()) {
-                rxTxInt = sock.receiveInt();
-                command = EV3Command.decode(rxTxInt, params);
-              } else {
-                if (keys.isButtonDown("Escape")) {
-                  command = EV3Command.COMMAND_STOP;
-                } else {
-                  try {
-                    Thread.sleep(5);
-                  } catch (InterruptedException ie) {
-                  }
-                }
-              }
-            } while ((command != EV3Command.COMMAND_ANSWER) && (command != EV3Command.COMMAND_STOP));
-
-            switch (command) {
-              case EV3Command.COMMAND_ANSWER: {
-                if (params[0] == 1) motionCtrl.setMaxSpeed(defaultHighSpeed);
-                if (params[0] == 2) motionCtrl.setMaxSpeed(defaultLowSpeed);
-                break;
-              }
-              case EV3Command.COMMAND_STOP: {
-                running = false;
-                break;
-              }
-            }
-          }
-
-          lcd.clear(6);
-          motionCtrl.reset();
-
-          if (running == false) break;
-
-        } else {
-          if (!markerDetect.hasMarkerDetected()) {
-            mode = ROBO_MODE_LINE;
-            lcd.clear(6);
-          }
+          running = running && keys.isButtonUp("Escape") && (!sock.isClosed());
         }
 
-        if (sock.rxAvailable()) {
-          rxTxInt = sock.receiveInt();
-          command = EV3Command.decode(rxTxInt, params);
+        roboMotorCtl.stop();
+        lcd.clear();
 
-          switch (command) {
-            case EV3Command.COMMAND_STOP:
-              running = false;
-              break;
-            default:
-              sock.returnReceivedInt(rxTxInt);
-          }
-        }
+      } while (!sock.isClosed());
 
-        if (running == false) break;
+      lcd.drawString("Up to quit", 1, 2);
 
-        int speed[] = motionCtrl.getSpeed();
+      pressedKey = simMode?Button.ID_DOWN:keys.waitForAnyPress();
 
-        roboMotorCtl.setSpeed(speed);
-
-        lcd.clear(2);
-        lcd.clear(3);
-        lcd.clear(4);
-        lcd.clear(7);
-
-        lcd.drawString("Speed: " + speed[0] + " / " + speed[1], 1, 2);
-        lcd.drawString("Remote: " + motionCtrlRemote.getSpeed()[0] + " " + motionCtrlRemote.getSpeed()[1], 1, 3);
-        lcd.drawString("Line: " + lineDetector.getSensorOutput()[0] + "", 1, 3);
-        lcd.drawString("Mode: " + mode + "", 1, 4);
-        lcd.drawString("Marker: " + markerDetect.getNextColor() + "", 1, 7);
-
-        try {
-          Thread.sleep((long)(1000 / frequency));
-        } catch (InterruptedException ie) {
-          throw new RuntimeException();
-        }
-
-        running = running && keys.isButtonUp("Escape") && (!sock.isClosed());
+      if (keys.isButtonDown("Up")) {
+        closeApp = true;
       }
 
-      roboMotorCtl.stop();
-      lcd.clear();
-
-    } while (!sock.isClosed());
+    } while (closeApp == false);
 
     for ( int i = 0; i < colSensorList.length; i++) colSensorList[i].close();
     if ( debugRS != null ) debugRS.close();
