@@ -1,2 +1,5 @@
 configurations.create("default")
 artifacts.add("default", file('connection.jar'))
+
+dependencies {
+}
