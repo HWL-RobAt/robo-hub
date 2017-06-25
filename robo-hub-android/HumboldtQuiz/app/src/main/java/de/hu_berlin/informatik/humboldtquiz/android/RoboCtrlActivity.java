@@ -195,12 +195,15 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
     }
 
     public void stopQuiz(boolean stoppedByUser) {
-        stopChronometer();
         quizMode = QUIZ_MODE_STOPPED;
+
+        stopChronometer();
+
+        app2roboComCtrl.reset();
 
         qvm.resetQuestions();
 
-        //if (!stoppedByUser) {
+        if (!stoppedByUser) {
             updateView();
 
             chronometer = (Chronometer)findViewById(R.id.chronometer);
@@ -213,7 +216,7 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
 
             TextView tvInfo = (TextView)findViewById(R.id.editText_result);;
             tvInfo.setText("Herzlichen Glückwunsch!\nDu hast die Reise in " + timeString + " geschafft!");
-        //}
+        }
     }
 
     public void getSpinnerItems() {
@@ -379,6 +382,10 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
     }
 
     public void onClickQuestion(View view) {
+        nextQuestion();
+    }
+
+    public void nextQuestion() {
         app2roboComCtrl.reset();
         breakChronometer();
         qvm.nextQuestion();

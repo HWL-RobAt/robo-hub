@@ -70,12 +70,10 @@ class AppToRoboCommunicationTask extends AsyncTask<AppToRoboCommunicationControl
 
         switch ( command ) {
             case EV3Command.COMMAND_QUESTION: {
-                app2roboComCtrl.reset();
-                app2roboComCtrl.appCompatActivity.qvm.nextQuestion();
+                app2roboComCtrl.appCompatActivity.nextQuestion();
                 break;
             }
             case EV3Command.COMMAND_STOP: {
-                app2roboComCtrl.reset();
                 app2roboComCtrl.appCompatActivity.stopQuiz(false);
                 break;
             }
