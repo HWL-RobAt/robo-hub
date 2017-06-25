@@ -186,6 +186,9 @@ public class HuQuizRobo {
       int command = -1;
 
       do {
+
+        markerDetect.reset();
+
         lcd.clear();
         lcd.drawString("Ready for next Quiz", 1, 2);
 
