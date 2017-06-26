@@ -1,6 +1,7 @@
 package de.hu_berlin.informatik.humboldtquiz.android;
 
 import android.content.res.Resources;
+import android.support.annotation.IdRes;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
@@ -61,7 +62,7 @@ public class QuizViewManager {
 
         lastAnswerCorrect = q.isCorrectAnswer(v);
         if ( lastAnswerCorrect ) textQuestion.setText("Die Antwort ist richtig!");
-        else textQuestion.setText("Die Antwort ist leider falsch!");
+        else                     textQuestion.setText("Die Antwort ist leider falsch!");
 
         textQuestion.setVisibility(View.VISIBLE);
 
@@ -69,18 +70,11 @@ public class QuizViewManager {
         buttonR.setEnabled(true);
         buttonR.setVisibility(View.VISIBLE);
 
-        final Button buttonA = (Button) appCompatActivity.findViewById(R.id.button_a);
-        buttonA.setEnabled(false);
+        @IdRes int[] buttonIDs = { R.id.button_a, R.id.button_b, R.id.button_c, R.id.button_d };
 
-        final Button buttonB = (Button) appCompatActivity.findViewById(R.id.button_b);
-        buttonB.setEnabled(false);
-
-        final Button buttonC = (Button) appCompatActivity.findViewById(R.id.button_c);
-        buttonC.setEnabled(false);
-
-        if ( q.getAnswers().length == 4 ) {
-            final Button buttonD = (Button) appCompatActivity.findViewById(R.id.button_d);
-            buttonD.setEnabled(false);
+        for ( int b = (q.getAnswers().length-1); b >= 0; b--) {
+            final Button button = (Button) appCompatActivity.findViewById(buttonIDs[b]);
+            button.setEnabled(false);
         }
     }
 
@@ -92,11 +86,8 @@ public class QuizViewManager {
         //System.out.println("#Quest pre: " + qc.questionListForLevel.size());
         q = qc.getNextQuestion();
 
-        if ( q == null ) {
-            System.out.println("Reset ql");
-            qc.resetQuestionList();
-            q = qc.getNextQuestion();
-        }
+        assert ( q != null );
+
         //System.out.println("#Quest post: " + qc.questionListForLevel.size());
 
         final Button buttonR = (Button) appCompatActivity.findViewById(R.id.button_resume);
@@ -107,20 +98,12 @@ public class QuizViewManager {
         String topic = qc.getStationTopic().replace("%",System.getProperty("line.separator"));
         textQuestion.setText(topic + "\n\n" + q.getQuestion());
 
-        final Button buttonA = (Button) appCompatActivity.findViewById(R.id.button_a);
-        buttonA.setText(q.getAnswers()[0]);
+        @IdRes int[] buttonIDs = { R.id.button_a, R.id.button_b, R.id.button_c, R.id.button_d };
 
-        final Button buttonB = (Button) appCompatActivity.findViewById(R.id.button_b);
-        buttonB.setText(q.getAnswers()[1]);
-
-        final Button buttonC = (Button) appCompatActivity.findViewById(R.id.button_c);
-        buttonC.setText(q.getAnswers()[2]);
-
-        final Button buttonD = (Button) appCompatActivity.findViewById(R.id.button_d);
-        if ( q.getAnswers().length < 4 ) {
-            buttonD.setVisibility(View.INVISIBLE);
-        } else {
-            buttonD.setText(q.getAnswers()[3]);
+        for ( int b = 0; b < buttonIDs.length; b++) {
+            final Button button = (Button) appCompatActivity.findViewById(buttonIDs[b]);
+            if ( q.getAnswers().length > b ) button.setText(q.getAnswers()[b]);
+            else                             button.setVisibility(View.INVISIBLE);
         }
     }
 }
