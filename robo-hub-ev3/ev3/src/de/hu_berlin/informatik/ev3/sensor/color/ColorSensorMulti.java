@@ -26,7 +26,9 @@ public class ColorSensorMulti extends EV3Sensor {
 
   public void update(BlackBoard blackBoard) {
     if (blackBoardID == -1) {
-      System.out.println("CS: " + blackBoard.getDataList("ColorSensor").size());
+
+      if ( debugWriter != null ) debugWriter.println("CS: " + blackBoard.getDataList("ColorSensor").size());
+
       lastColors = new int[blackBoard.getDataList("ColorSensor").size()];
       blackBoardID = blackBoard.setData(blackBoardName, lastColors);
     }
