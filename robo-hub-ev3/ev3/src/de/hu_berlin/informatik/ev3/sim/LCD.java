@@ -32,13 +32,18 @@ public class LCD {
     }
   }
 
+  public void drawString(String text, int x, int y, boolean clearBefore) {
+    if (clearBefore) clear(y);
 
-  public void drawString(String text, int x, int y) {
     if (!sim) lcd.drawString(text, x, y);
     else {
       display[y] = text;
       System.out.println(text);
     }
+  }
+
+  public void drawString(String text, int x, int y) {
+    drawString(text,x,y,false);
   }
 
   public void clear() {
@@ -53,4 +58,14 @@ public class LCD {
     if (!sim) lcd.clear(i);
     else display[i] = null;
   }
+
+  public void clear(int i, int j) {
+      if (!sim) {
+        for ( int x = i; x <= j; x++) lcd.clear(x);
+      } else {
+        for ( int x = i; x <= j; x++) display[x] = null;
+      }
+    }
+
+
 }
