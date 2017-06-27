@@ -17,10 +17,7 @@ import de.hu_berlin.informatik.ev3.sensor.detector.LineDetector;
 import de.hu_berlin.informatik.ev3.sensor.detector.MarkerDetector;
 import de.hu_berlin.informatik.ev3.sensor.detector.MarkerDetectorColorList;
 import de.hu_berlin.informatik.ev3.sensor.remote.RemoteMotionSensor2D;
-import de.hu_berlin.informatik.ev3.sim.ColorSensorSim;
-import de.hu_berlin.informatik.ev3.sim.DualMotorControlSim;
-import de.hu_berlin.informatik.ev3.sim.Keys;
-import de.hu_berlin.informatik.ev3.sim.LCD;
+import de.hu_berlin.informatik.ev3.sim.*;
 import lejos.hardware.Button;
 import lejos.robotics.Color;
 
@@ -37,7 +34,7 @@ import static lejos.hardware.ev3.LocalEV3.ev3;
  */
 public class HuQuizRobo {
 
-  public static final int ROBO_MODE_LINE = 0;
+  public static final int ROBO_MODE_MOVE = 0;
   public static final int ROBO_MODE_MARKER = 1;
 
   public static final int ROBO_MODE_CTRL_GYRO = 0;
@@ -51,8 +48,7 @@ public class HuQuizRobo {
 
   public static void main(String[] args) {
 
-    boolean running = false;
-    boolean simMode = false;
+    boolean running;
     boolean closeApp = false;
 
     int defaultHighSpeed = 300;
@@ -61,8 +57,15 @@ public class HuQuizRobo {
 
     int frequency = 50;
 
-    int markerColor[] = null;
-    int lineColor = Color.NONE;
+    int markerColor[];
+    int lineColor;
+
+    boolean simMode = true;
+    int simMarkerColorIndex = 0;
+    int simMarkerDelayCount = 0;
+    int simMarkerDelayMax = 100;
+
+    boolean debug = false;
 
     int tour = ROBO_TOUR_ALEXANDER;
     String configfilePrefix = "/home/robo-hub/";
@@ -143,10 +146,12 @@ public class HuQuizRobo {
     MotionControl motionCtrlRemote = new MotionControlRemote();
     MotionControl motionCtrl = null;
 
-
     MotorControl roboMotorCtl = null;
     if (simMode) roboMotorCtl = new DualMotorControlSim("MotorPort.A", "MotorPort.B");
     else roboMotorCtl = new DualMotorControl("MotorPort.A", "MotorPort.B");
+
+    Audio audio = new Audio(simMode);
+    audio.setVolume(15);
 
     PrintWriter debugRS = null;
     /*try {
@@ -162,7 +167,7 @@ public class HuQuizRobo {
     do {
       lcd.clear();
 
-      int mode = ROBO_MODE_LINE;
+      int mode = ROBO_MODE_MOVE;
 
       /*
        * Communication
@@ -173,11 +178,10 @@ public class HuQuizRobo {
       sock.init();
 
       lcd.drawString("Wait for Client", 1, 2);
-      ev3.getAudio().setVolume(15);
-      ev3.getAudio().systemSound(0);
+      audio.systemSound(0);
 
       sock.waitForClient();
-      ev3.getAudio().systemSound(1);
+      audio.systemSound(1);
 
       lcd.clear(2);
 
@@ -210,12 +214,12 @@ public class HuQuizRobo {
         } while ((command != EV3Command.COMMAND_START) && (command != EV3Command.COMMAND_DISCONNECT));
 
         lcd.clear(2);
-        ev3.getAudio().systemSound(3);
+        audio.systemSound(3);
 
         if (command == EV3Command.COMMAND_START) {
           roboMoveMode = params[0];
 
-          lcd.drawString("Mode: " + roboMoveMode, 1, 1);
+          if (debug) lcd.drawString("Mode: " + roboMoveMode, 1, 1);
 
           switch (roboMoveMode) {
             case ROBO_MODE_CTRL_LINE:
@@ -254,15 +258,26 @@ public class HuQuizRobo {
           motionCtrlBB.update(blackBoard);
 
           int colors[] = colorSensors.getSensorOutput();
-          lcd.clear(5);
-          lcd.drawString("Color: " + colors[0] + " / " + colors[1], 1, 5);
 
-          if ((mode == ROBO_MODE_LINE) && markerDetect.hasMarkerDetected()) {
+          if (debug) lcd.drawString("Color: " + colors[0] + " / " + colors[1], 1, 5, true);
+
+          simMarkerDelayCount++;
+
+          if ((mode == ROBO_MODE_MOVE) && (markerDetect.hasMarkerDetected() ||
+               (simMode && ( simMarkerDelayCount == simMarkerDelayMax)))) {
+
             mode = ROBO_MODE_MARKER;
-            int markerCol = markerDetect.getDetectedMarker();
+            int markerCol = -1;
 
-            lcd.clear(6);
-            lcd.drawString("Marker: " + markerCol + "", 1, 7);
+            if ( simMode ) {
+              simMarkerDelayCount = 0;
+              markerCol = markerColor[simMarkerColorIndex];
+              simMarkerColorIndex = (simMarkerColorIndex+1)%markerColor.length;
+            } else {
+              markerCol = markerDetect.getDetectedMarker();
+            }
+
+            if (debug) lcd.drawString("Marker: " + markerCol + "", 1, 7, true);
 
             roboMotorCtl.backward(10);
 
@@ -275,14 +290,14 @@ public class HuQuizRobo {
             roboMotorCtl.stop();
 
             if (markerCol == markerColor[markerColor.length - 1]) {
-              ev3.getAudio().systemSound(3);
+              audio.systemSound(3);
 
               rxTxInt = EV3Command.encode(EV3Command.COMMAND_STOP);
               sock.sendInt(rxTxInt);
 
               running = false;
             } else {
-              ev3.getAudio().systemSound(4);
+              audio.systemSound(4);
               rxTxInt = EV3Command.encode(EV3Command.COMMAND_QUESTION);
               sock.sendInt(rxTxInt);
 
@@ -321,9 +336,11 @@ public class HuQuizRobo {
 
             if (running == false) break;
 
+            if ( simMode ) mode = ROBO_MODE_MOVE;
+
           } else {
             if (!markerDetect.hasMarkerDetected()) {
-              mode = ROBO_MODE_LINE;
+              mode = ROBO_MODE_MOVE;
               lcd.clear(6);
             }
           }
@@ -354,21 +371,17 @@ public class HuQuizRobo {
 
           roboMotorCtl.setSpeed(speed);
 
-          lcd.clear(1);
-          lcd.clear(2);
-          lcd.clear(3);
-          lcd.clear(4);
-          lcd.clear(5);
-          lcd.clear(6);
-          lcd.clear(7);
+          if (debug) {
+            lcd.clear(1, 7);
 
-          lcd.drawString("Mode: " + mode + "", 1, 1);
-          lcd.drawString("Speed: " + speed[0] + " / " + speed[1], 1, 2);
-          lcd.drawString("Remote: " + motionCtrlRemote.getSpeed()[0] + " " + motionCtrlRemote.getSpeed()[1], 1, 3);
-          lcd.drawString("Line: " + lineDetector.getSensorOutput()[0] + "", 1, 4);
-          lcd.drawString("Color: " + colors[0] + " / " + colors[1], 1, 5);
-          lcd.drawString("Cmd: " + command, 1, 6);
-          lcd.drawString("Marker: " + markerDetect.getNextColor() + "", 1, 7);
+            lcd.drawString("Mode: " + mode + "", 1, 1);
+            lcd.drawString("Speed: " + speed[0] + " / " + speed[1], 1, 2);
+            lcd.drawString("Remote: " + motionCtrlRemote.getSpeed()[0] + " " + motionCtrlRemote.getSpeed()[1], 1, 3);
+            lcd.drawString("Line: " + lineDetector.getSensorOutput()[0] + "", 1, 4);
+            lcd.drawString("Color: " + colors[0] + " / " + colors[1], 1, 5);
+            lcd.drawString("Cmd: " + command, 1, 6);
+            lcd.drawString("Marker: " + markerDetect.getNextColor() + "", 1, 7);
+          }
 
           try {
             Thread.sleep((long) (1000 / frequency));
@@ -386,7 +399,7 @@ public class HuQuizRobo {
 
       lcd.drawString("Up to quit", 1, 2);
 
-      pressedKey = simMode?Button.ID_DOWN:keys.waitForAnyPress();
+      pressedKey = simMode?Button.ID_UP:keys.waitForAnyPress();
 
       if (keys.isButtonDown("Up")) {
         closeApp = true;
