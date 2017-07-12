@@ -21,6 +21,7 @@ import de.hu_berlin.informatik.ev3.sim.*;
 import lejos.hardware.Button;
 import lejos.robotics.Color;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 
 import static lejos.hardware.ev3.LocalEV3.ev3;
@@ -60,18 +61,26 @@ public class HuQuizRobo {
     int markerColor[];
     int lineColor;
 
-    boolean simMode = true;
+    boolean simMode = false;
     int simMarkerColorIndex = 0;
     int simMarkerDelayCount = 0;
     int simMarkerDelayMax = 100;
 
-    boolean debug = false;
+    boolean debug = true;
+    boolean debug_remote = false;
 
-    int tour = ROBO_TOUR_ALEXANDER;
-    String configfilePrefix = "/home/robo-hub/";
+    if ( args.length > 0 ) {
+      if ( args[0].equals("sim") ) {
+        System.out.println("Simulation");
+        simMode = true;
+      }
+    }
 
     LCD lcd = new LCD(simMode);
     Keys keys = new Keys(simMode);
+
+    int tour = ROBO_TOUR_ALEXANDER;
+    String configfilePrefix = "/home/robo-hub/";
 
     lcd.drawString("Alex: Up Indoor: Down", 1, 2);
 
@@ -86,8 +95,8 @@ public class HuQuizRobo {
 
     String colortabPost = "";
 
-    if ( pressedKey == Button.ID_DOWN ) colortabPost = "_1";
-    if ( pressedKey == Button.ID_LEFT ) colortabPost = "_2";
+    if ( pressedKey == Button.ID_DOWN )  colortabPost = "_1";
+    if ( pressedKey == Button.ID_LEFT )  colortabPost = "_2";
     if ( pressedKey == Button.ID_RIGHT ) colortabPost = "_3";
 
     if ( tour == ROBO_TOUR_ALEXANDER ) {
@@ -148,23 +157,34 @@ public class HuQuizRobo {
 
     MotorControl roboMotorCtl = null;
     if (simMode) roboMotorCtl = new DualMotorControlSim("MotorPort.A", "MotorPort.B");
-    else roboMotorCtl = new DualMotorControl("MotorPort.A", "MotorPort.B");
+    else         roboMotorCtl = new DualMotorControl("MotorPort.A", "MotorPort.B");
 
     Audio audio = new Audio(simMode);
     audio.setVolume(15);
 
     PrintWriter debugRS = null;
-    /*try {
-      debugRS = new PrintWriter("/home/robo-hub/remote_sender.dbg");
-      if (debugRS != null) {
-        remoteSensor.setDebugWriter(debugRS);
-        motionCtrlRemote.setDebugWriter(debugRS);
-      }
-    } catch (IOException ioe)  {
-      throw new RuntimeException();
-    } */
 
-    do {
+    if ( debug && debug_remote ) {
+      try {
+        debugRS = new PrintWriter("/home/robo-hub/remote_sender.dbg");
+        if (debugRS != null) {
+          remoteSensor.setDebugWriter(debugRS);
+          motionCtrlRemote.setDebugWriter(debugRS);
+        }
+      } catch (IOException ioe)  {
+        throw new RuntimeException();
+      }
+    }
+
+    /*
+     * Main-Loop
+     *
+     * waiting for new clients
+     *   - open socket
+     *   - wait for client
+     */
+    do { //App loop
+
       lcd.clear();
 
       int mode = ROBO_MODE_MOVE;
@@ -172,6 +192,7 @@ public class HuQuizRobo {
       /*
        * Communication
        */
+      //TODO: just call init in the loop!!
       //ConnectionInfo ci = new ConnectionInfo("server.properties");
       ConnectionInfo ci = new ConnectionInfo("0.0.0.0", 2000);
       SocketConnection sock = new SocketConnection(ci);
@@ -180,22 +201,33 @@ public class HuQuizRobo {
       lcd.drawString("Wait for Client", 1, 2);
       audio.systemSound(0);
 
-      sock.waitForClient();
-      audio.systemSound(1);
+      sock.waitForClient();    //TODO: add "abort"-option
 
       lcd.clear(2);
+      audio.systemSound(1);
 
       int rxTxInt = 0;
       int params[] = {0, 0, 0};
       int command = -1;
 
-      do {
+      /*
+       * Client-Loop
+       *   - handle single Client
+       *   - client starts/stops quiz
+       */
+
+      do { //Client loop
 
         markerDetect.reset();
 
         lcd.clear();
         lcd.drawString("Ready for next Quiz", 1, 2);
 
+        /*
+         *  Wait for client-command to start next quiz
+         *
+         *  TODO: check wether "DISCONNECT" works
+         */
         do {
           command = EV3Command.COMMAND_NONE;
           if (sock.rxAvailable()) {
@@ -216,34 +248,49 @@ public class HuQuizRobo {
         lcd.clear(2);
         audio.systemSound(3);
 
-        if (command == EV3Command.COMMAND_START) {
-          roboMoveMode = params[0];
+        /*
+         * Handle Client start command: start quiz or disconnect
+         */
 
-          if (debug) lcd.drawString("Mode: " + roboMoveMode, 1, 1);
+        switch (command) {
+          case EV3Command.COMMAND_START:
+            roboMoveMode = params[0];
 
-          switch (roboMoveMode) {
-            case ROBO_MODE_CTRL_LINE:
-              motionCtrl = motionCtrlBB;
-              break;
-            default:
-              motionCtrl = motionCtrlRemote;
-          }
+            if (debug) lcd.drawString("Mode: " + roboMoveMode, 1, 1);
 
-          motionCtrl.setMaxSpeed(defaultStartSpeed);
-          remoteSensor.setDataInputStream(sock);
+            switch (roboMoveMode) {
+              case ROBO_MODE_CTRL_LINE:
+                motionCtrl = motionCtrlBB;
+                break;
+              default:
+                motionCtrl = motionCtrlRemote;
+            }
 
-          running = true;
-        } else {
-          if (command == EV3Command.COMMAND_DISCONNECT) {
+            motionCtrl.setMaxSpeed(defaultStartSpeed);
+            remoteSensor.setDataInputStream(sock);
+
+            running = true;
+            break;
+          case EV3Command.COMMAND_DISCONNECT:
             running = false;
             sock.reset();
             sock.close();
-          } else {
+            break;
+          default:
+            System.out.println("Invalid state in 'wait for next quiz': command is " + command);
             running = false;
-          }
         }
 
-        while (running) {
+        /*
+         * Quiz-Loop: runs until:
+         *    - quiz end
+         *    - client stops the quiz (go to next quiz)
+         *    - client disconnects
+         *
+         *    TODO: More options to leave quiz-loop
+         */
+
+        while (running) { //Quiz loop
           for (int i = 0; i < colSensorList.length; i++) colSensorList[i].update(blackBoard);
 
           remoteSensor.update(blackBoard);
@@ -301,6 +348,11 @@ public class HuQuizRobo {
               rxTxInt = EV3Command.encode(EV3Command.COMMAND_QUESTION);
               sock.sendInt(rxTxInt);
 
+              /*
+               * SingleQuestion/Answer-Loop
+               *
+               * TODO: what about disconnect?
+               */
               do {
                 command = EV3Command.COMMAND_NONE;
                 if (sock.rxAvailable()) {
@@ -331,17 +383,15 @@ public class HuQuizRobo {
               }
             }
 
-            lcd.clear(6);
             motionCtrl.reset();
 
             if (running == false) break;
 
             if ( simMode ) mode = ROBO_MODE_MOVE;
 
-          } else {
+          } else { //Robo in marker_mode or marker is not detected
             if (!markerDetect.hasMarkerDetected()) {
               mode = ROBO_MODE_MOVE;
-              lcd.clear(6);
             }
           }
 
@@ -353,7 +403,7 @@ public class HuQuizRobo {
               case EV3Command.COMMAND_STOP:
                 running = false;
                 break;
-              //zum testen
+              //Test the App (if the question in the app in activate by user)
               case EV3Command.COMMAND_ANSWER:
                 if (params[0] == 1) motionCtrl.setMaxSpeed(defaultHighSpeed);
                 if (params[0] == 2) motionCtrl.setMaxSpeed(defaultLowSpeed);
@@ -390,12 +440,13 @@ public class HuQuizRobo {
           }
 
           running = running && keys.isButtonUp("Escape") && (!sock.isClosed());
-        }
+
+        } //End of quiz loop
 
         roboMotorCtl.stop();
         lcd.clear();
 
-      } while (!sock.isClosed());
+      } while (!sock.isClosed());  //Client loop
 
       lcd.drawString("Up to quit", 1, 2);
 
@@ -405,7 +456,7 @@ public class HuQuizRobo {
         closeApp = true;
       }
 
-    } while (closeApp == false);
+    } while (closeApp == false); //app loop
 
     for ( int i = 0; i < colSensorList.length; i++) colSensorList[i].close();
     if ( debugRS != null ) debugRS.close();
