@@ -152,6 +152,7 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
 
             saveIPFromForm();
 
+            app2roboComCtrl.closeIt = false; //TODO: move to some method
             commTask = new AppToRoboCommunicationTask().execute(app2roboComCtrl);
 
             setConnectionMode(CONNECTION_MODE_CONNECTED);
@@ -170,7 +171,7 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
 
             assert(connectionMode == CONNECTION_MODE_CONNECTED );
 
-            System.out.println("Mode: " + roboctrlMode);
+            //System.out.println("Mode: " + roboctrlMode);
 
             if (roboctrlMode >= ROBOCTRL_MODE_GYRO2)
                 app2roboComCtrl.sendCommand(EV3Command.COMMAND_START, roboctrlMode - 1, 0, 0);
@@ -329,6 +330,7 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
         System.out.println("Cont Chronometer");
         if (chronometer_running) {
             chronometer = (Chronometer)findViewById(R.id.chronometer);
+            if ( chronometer == null ) return;
             chronometer.start();
             chronometer.setBase(chronometerBase);
         }
@@ -338,6 +340,7 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
         System.out.println("Break Chronometer");
         if (chronometer_running) {
             chronometer = (Chronometer)findViewById(R.id.chronometer);
+            if ( chronometer == null ) return;
             chronometer.stop();
             chronometerBase  = chronometer.getBase();
         }
@@ -347,6 +350,7 @@ public class RoboCtrlActivity extends AppCompatActivity implements SensorEventLi
         System.out.println("Stop Chronometer");
         if (chronometer_running) {
             chronometer = (Chronometer)findViewById(R.id.chronometer);
+            if ( chronometer == null ) return;
             chronometer.stop();
             chronometer_running = false;
         }
