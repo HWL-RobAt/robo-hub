@@ -11,8 +11,8 @@ public class MarkerDetectorColorList extends MarkerDetectorWithMemory  {
   public MarkerDetectorColorList(int colors[]) {
     super(colors);
     markerColorList = colors;
-    markerColorListIndex = 0;
-    setNextColor();
+
+    reset();
   }
 
   private void setNextColor() {
@@ -23,6 +23,7 @@ public class MarkerDetectorColorList extends MarkerDetectorWithMemory  {
 
   public void reset() {
     markerColorListIndex = 0;
+    setNextColor();
   }
 
   public void setSensorInput(int colors[]) {
@@ -31,7 +32,7 @@ public class MarkerDetectorColorList extends MarkerDetectorWithMemory  {
 
     if (detectMarker) {
       setNextColor();
-      super.reset();
+      super.reset();  //TODO: reset to avoid re-detection of marker. Refactor and rm usage of reset!!
     }
   }
 }
